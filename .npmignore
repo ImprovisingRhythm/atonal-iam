@@ -1,0 +1,7 @@
+.vscode
+.prettierrc
+.gitignore
+/src
+/tools
+/tsconfig.json
+/test.js
