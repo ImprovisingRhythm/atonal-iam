@@ -51,7 +51,7 @@ router.post('/sign-up', {
   ],
   schema: {
     body: Type.Object({
-      type: Type.Literal(['email', 'phone']),
+      type: Type.Literal(['email', 'phoneNumber']),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       ticket: Type.Optional(Type.String()),
@@ -69,7 +69,7 @@ router.post('/sign-up', {
       }
 
       user = await authService.instance.signUpWithEmail(email, password)
-    } else if (type === 'phone') {
+    } else if (type === 'phoneNumber') {
       if (!phoneNumber || !ticket) {
         throw new BadRequest('must include [phone] and [ticket]')
       }
@@ -98,7 +98,7 @@ router.post('/sign-in', {
   ],
   schema: {
     body: Type.Object({
-      type: Type.Literal(['email', 'phone']),
+      type: Type.Literal(['email', 'phoneNumber']),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       password: Type.Optional(Type.String()),
@@ -120,7 +120,7 @@ router.post('/sign-in', {
       }
 
       resData = await authService.instance.signInWithEmail(email, password)
-    } else if (type === 'phone') {
+    } else if (type === 'phoneNumber') {
       if (!phoneNumber) {
         throw new BadRequest('must include [phone]')
       }
@@ -253,7 +253,7 @@ router.post('/reset-password', {
   ],
   schema: {
     body: Type.Object({
-      type: Type.Literal(['email', 'phone']),
+      type: Type.Literal(['email', 'phoneNumber']),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       ticket: Type.String(),
@@ -271,7 +271,7 @@ router.post('/reset-password', {
       return authService.instance.resetPasswordByEmail(email, password, ticket)
     }
 
-    if (type === 'phone') {
+    if (type === 'phoneNumber') {
       if (!phoneNumber) {
         throw new BadRequest('must include [phone]')
       }
