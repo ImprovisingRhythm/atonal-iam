@@ -8,22 +8,24 @@ import {
 } from 'atonal'
 import { asObjectId, ObjectId } from 'atonal-db'
 import { pick } from 'lodash'
-import jwt from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 import { RoleModel, UserModel } from '../models'
 import { VerificationService } from './verification.service'
 import { IAMConfigs } from '../common/configs'
-import { UserAuthInfo, UserAuthInfoJwtPayload } from '../types/auth'
+import { UserAuthInfo } from '../types/auth'
 import { SessionService } from './session.service'
 
 export class AuthService {
   constructor(private configs: IAMConfigs) {}
 
-  async getSessionFromSID(sid: string) {
+  async getSessionBySID(sid: string) {
     return this.sessionService.getSession<UserAuthInfo>(sid)
   }
 
-  async getSessionFromToken(token: string) {
-    return this.verifyToken(token)
+  async getSessionByToken(token: string) {
+    const { sid } = await this.verifyToken<{ sid: string }>(token)
+
+    return this.getSessionBySID(sid)
   }
 
   async refreshSession(userId: ObjectId) {
@@ -350,20 +352,19 @@ export class AuthService {
     return authInfo
   }
 
-  private async verifyToken(token: string) {
-    const payload = await new Promise<UserAuthInfoJwtPayload>(
-      (resolve, reject) => {
-        jwt.verify(token, this.configs.auth.jwt.secret, {}, (err, result) => {
-          if (err) {
-            reject(new Unauthorized(`invalid token: ${err.message}`))
-          } else {
-            resolve(result as UserAuthInfoJwtPayload)
-          }
-        })
-      },
-    )
+  private async verifyToken<T = JwtPayload>(token: string) {
+    const { secret } = this.configs.auth.session.jwt
+    const payload = await new Promise<T>((resolve, reject) => {
+      jwt.verify(token, secret, {}, (err, result) => {
+        if (err) {
+          reject(new Unauthorized(`invalid token: ${err.message}`))
+        } else {
+          resolve(result as T)
+        }
+      })
+    })
 
-    return payload as UserAuthInfo
+    return payload
   }
 
   private async handleSignIn(userId: ObjectId) {
@@ -373,11 +374,10 @@ export class AuthService {
       user,
     )
 
-    const token = jwt.sign(user, this.configs.auth.jwt.secret, {
-      expiresIn: this.configs.auth.jwt.expiresIn,
-    })
+    const { secret, expiresIn } = this.configs.auth.session.jwt
+    const token = jwt.sign({ sid }, secret, { expiresIn })
 
-    return { sid, token, user }
+    return { user, sid, token }
   }
 
   private get sessionService() {

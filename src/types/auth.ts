@@ -1,6 +1,7 @@
 import 'atonal'
 import { ObjectId } from 'bson'
-import { JwtPayload } from 'jsonwebtoken'
+
+export declare type AuthSource = 'user' | 'client' | 'api-token'
 
 export declare interface UserAuthInfo {
   _id: ObjectId
@@ -9,11 +10,9 @@ export declare interface UserAuthInfo {
   phoneNumberVerified?: boolean
 }
 
-export declare type UserAuthInfoJwtPayload = UserAuthInfo & JwtPayload
-
 declare module 'fastify' {
   interface RequestState {
-    withApiToken?: boolean
+    authSource: AuthSource
     sid: string
     user: UserAuthInfo
   }

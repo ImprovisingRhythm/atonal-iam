@@ -28,10 +28,10 @@ router.post('/', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { name, permissions, alias, description } = req.body
 
-    if (!withApiToken && !user.permissions.includes('createRole')) {
+    if (authSource === 'user' && !user.permissions.includes('createRole')) {
       throw new Forbidden()
     }
 
@@ -53,13 +53,13 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { name, sortBy, orderBy, skip, limit } = transform(req.query, {
       skip: Number,
       limit: Number,
     })
 
-    if (!withApiToken && !user.permissions.includes('getRoles')) {
+    if (authSource === 'user' && !user.permissions.includes('getRoles')) {
       throw new Forbidden()
     }
 
@@ -80,12 +80,12 @@ router.get('/:roleId', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { roleId } = transform(req.params, {
       roleId: ObjectId.createFromHexString,
     })
 
-    if (!withApiToken && !user.permissions.includes('getRoles')) {
+    if (authSource === 'user' && !user.permissions.includes('getRoles')) {
       throw new Forbidden()
     }
 
@@ -107,12 +107,12 @@ router.patch('/:roleId', {
     ),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { roleId } = transform(req.params, {
       roleId: ObjectId.createFromHexString,
     })
 
-    if (!!withApiToken && !user.permissions.includes('updateRoles')) {
+    if (authSource === 'user' && !user.permissions.includes('updateRoles')) {
       throw new Forbidden()
     }
 

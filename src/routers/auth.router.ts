@@ -17,7 +17,7 @@ const router = useRouter()
 router.get('/session', {
   middlewares: [
     requireAuth({
-      mode: 'user-only',
+      sources: ['user'],
       throwError: false,
     }),
     rateLimit({
@@ -108,9 +108,9 @@ router.post('/sign-in', {
     const { type, email, phoneNumber, password, ticket } = req.body
 
     let resData: {
+      user: UserAuthInfo
       sid: string
       token: string
-      user: UserAuthInfo
     }
 
     if (type === 'email') {

@@ -11,10 +11,6 @@ export interface IAMConfigs {
   }
   auth: {
     apiToken: string
-    jwt: {
-      secret: string
-      expiresIn: string
-    }
     session: {
       expiresIn: string
       cookie: {
@@ -23,6 +19,10 @@ export interface IAMConfigs {
         signed?: boolean
         httpOnly?: boolean
         maxAge?: number
+      }
+      jwt: {
+        secret: string
+        expiresIn: string
       }
     }
   }

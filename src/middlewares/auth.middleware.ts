@@ -1,19 +1,18 @@
 import { BadRequest, Unauthorized, useInstance, useMiddleware } from 'atonal'
 import { IAMConfigs } from '../common/configs'
 import { AuthService } from '../services/auth.service'
+import { AuthSource } from '../types/auth'
 
 const configs = useInstance<IAMConfigs>('IAM.configs')
 const authService = useInstance<AuthService>('IAM.service.auth')
 
-export type AuthGuardMode = 'all' | 'user-only' | 'client-only' | 'api-only'
-
 export interface AuthGuardOptions {
-  mode?: AuthGuardMode
+  sources?: AuthSource[]
   throwError?: boolean
 }
 
 export const requireAuth = ({
-  mode = 'all',
+  sources = ['user', 'api-token'],
   throwError = true,
 }: AuthGuardOptions = {}) => {
   return useMiddleware(async req => {
@@ -29,20 +28,16 @@ export const requireAuth = ({
 
       if (sid) {
         req.state.sid = sid
-        req.state.user = await authService.instance.getSessionFromSID(sid)
+        req.state.user = await authService.instance.getSessionBySID(sid)
         return
       }
 
       if (
-        mode !== 'user-only' &&
+        sources.includes('api-token') &&
         req.headers['x-api-token'] === configs.instance.auth.apiToken
       ) {
-        req.state.withApiToken = true
+        req.state.authSource = 'api-token'
         return
-      }
-
-      if (mode === 'api-only') {
-        throw new Unauthorized('only api token allowed')
       }
 
       if (!req.headers.authorization) {
@@ -55,7 +50,7 @@ export const requireAuth = ({
         throw new BadRequest('unrecognized token format')
       }
 
-      req.state.user = await authService.instance.getSessionFromToken(token)
+      req.state.user = await authService.instance.getSessionByToken(token)
     } catch (error) {
       if (throwError) {
         throw error

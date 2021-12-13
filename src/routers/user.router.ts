@@ -33,7 +33,7 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId, email, phoneNumber, sortBy, orderBy, skip, limit } =
       transform(req.query, {
         userId: ObjectId.createFromHexString,
@@ -41,7 +41,7 @@ router.get('/', {
         limit: Number,
       })
 
-    if (!withApiToken && !user.permissions.includes('getUsers')) {
+    if (authSource === 'user' && !user.permissions.includes('getUsers')) {
       throw new Forbidden()
     }
 
@@ -64,12 +64,12 @@ router.get('/:userId', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (!withApiToken && !user.permissions.includes('getUsers')) {
+    if (authSource === 'user' && !user.permissions.includes('getUsers')) {
       throw new Forbidden()
     }
 
@@ -85,12 +85,12 @@ router.patch('/:userId/profile', {
     body: Type.Partial(configs.instance.schemas.userProfile),
   }),
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (!withApiToken && !user.permissions.includes('updateUsers')) {
+    if (authSource === 'user' && !user.permissions.includes('updateUsers')) {
       throw new Forbidden()
     }
 
@@ -106,12 +106,12 @@ router.put('/:userId/profile', {
     body: configs.instance.schemas.userProfile,
   }),
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (!withApiToken && !user.permissions.includes('updateUsers')) {
+    if (authSource === 'user' && !user.permissions.includes('updateUsers')) {
       throw new Forbidden()
     }
 
@@ -129,7 +129,7 @@ router.put('/:userId/roles', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId, roleIds } = transform(
       { ...req.params, ...req.body },
       {
@@ -138,7 +138,10 @@ router.put('/:userId/roles', {
       },
     )
 
-    if (!withApiToken && !user.permissions.includes('setUserPermissions')) {
+    if (
+      authSource === 'user' &&
+      !user.permissions.includes('setUserPermissions')
+    ) {
       throw new Forbidden()
     }
 
@@ -153,12 +156,12 @@ router.post('/:userId/block', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (!withApiToken && !user.permissions.includes('blockUser')) {
+    if (authSource === 'user' && !user.permissions.includes('blockUser')) {
       throw new Forbidden()
     }
 
@@ -173,12 +176,12 @@ router.post('/:userId/unblock', {
     }),
   },
   handler: async req => {
-    const { user, withApiToken } = req.state
+    const { authSource, user } = req.state
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (!withApiToken && !user.permissions.includes('blockUser')) {
+    if (authSource === 'user' && !user.permissions.includes('blockUser')) {
       throw new Forbidden()
     }
 
