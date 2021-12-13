@@ -5,7 +5,7 @@ import { requireAuth } from '../middlewares'
 const router = useRouter({
   middlewares: [
     requireAuth({
-      sources: ['api-token'],
+      sources: ['directAccess'],
     }),
   ],
 })

@@ -4,11 +4,11 @@ import {
   hashPassword,
   NotFound,
   randomString,
+  sha1,
   Unauthorized,
 } from 'atonal'
 import { asObjectId, ObjectId } from 'atonal-db'
 import { pick } from 'lodash'
-import jwt, { JwtPayload } from 'jsonwebtoken'
 import { RoleModel, UserModel } from '../models'
 import { VerificationService } from './verification.service'
 import { IAMConfigs } from '../common/configs'
@@ -23,9 +23,7 @@ export class AuthService {
   }
 
   async getSessionByToken(token: string) {
-    const { sid } = await this.verifyToken<{ sid: string }>(token)
-
-    return this.getSessionBySID(sid)
+    return this.getSessionBySID(this.verifyToken(token))
   }
 
   async refreshSession(userId: ObjectId) {
@@ -352,21 +350,6 @@ export class AuthService {
     return authInfo
   }
 
-  private async verifyToken<T = JwtPayload>(token: string) {
-    const { secret } = this.configs.auth.session.jwt
-    const payload = await new Promise<T>((resolve, reject) => {
-      jwt.verify(token, secret, {}, (err, result) => {
-        if (err) {
-          reject(new Unauthorized(`invalid token: ${err.message}`))
-        } else {
-          resolve(result as T)
-        }
-      })
-    })
-
-    return payload
-  }
-
   private async handleSignIn(userId: ObjectId) {
     const user = await this.getUserAuthInfo(userId)
     const sid = await this.sessionService.createSession(
@@ -374,10 +357,34 @@ export class AuthService {
       user,
     )
 
-    const { secret, expiresIn } = this.configs.auth.session.jwt
-    const token = jwt.sign({ sid }, secret, { expiresIn })
+    return {
+      user,
+      sid,
+      token: this.signToken(sid),
+    }
+  }
 
-    return { user, sid, token }
+  private verifyToken(token: string) {
+    const { secret } = this.configs.auth.session.token
+    const payload = Buffer.from(token, 'base64url').toString()
+    const [sid, signature] = payload.split(':')
+
+    if (!sid || !signature) {
+      throw new Unauthorized('invalid token: parse error')
+    }
+
+    if (signature !== sha1(sid + secret)) {
+      throw new Unauthorized('invalid token: signature is not matched')
+    }
+
+    return sid
+  }
+
+  private signToken(sid: string) {
+    const { secret } = this.configs.auth.session.token
+    const payload = `${sid}:${sha1(sid + secret)}`
+
+    return Buffer.from(payload).toString('base64url')
   }
 
   private get sessionService() {

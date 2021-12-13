@@ -10,7 +10,7 @@ export interface IAMConfigs {
     userProfile: TObject<{}>
   }
   auth: {
-    apiToken: string
+    directAccessToken: string
     session: {
       expiresIn: string
       cookie: {
@@ -20,9 +20,8 @@ export interface IAMConfigs {
         httpOnly?: boolean
         maxAge?: number
       }
-      jwt: {
+      token: {
         secret: string
-        expiresIn: string
       }
     }
   }

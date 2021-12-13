@@ -186,7 +186,9 @@ router.post('/sign-out', {
 
 router.post('/bind-email', {
   middlewares: [
-    requireAuth(),
+    requireAuth({
+      sources: ['user'],
+    }),
     rateLimit({
       timeWindow: 10000,
       maxRequests: 20,
@@ -208,7 +210,9 @@ router.post('/bind-email', {
 
 router.post('/bind-phone-number', {
   middlewares: [
-    requireAuth(),
+    requireAuth({
+      sources: ['user'],
+    }),
     rateLimit({
       timeWindow: 10000,
       maxRequests: 20,
@@ -230,7 +234,9 @@ router.post('/bind-phone-number', {
 
 router.post('/change-password', {
   middlewares: [
-    requireAuth(),
+    requireAuth({
+      sources: ['user'],
+    }),
     rateLimit({
       timeWindow: 10000,
       maxRequests: 10,
