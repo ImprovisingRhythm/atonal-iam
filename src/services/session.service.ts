@@ -9,13 +9,13 @@ export class SessionService {
     return SessionModel.user.has(uid)
   }
 
-  async createSession(uid: string, value: SessionValue) {
+  async createSession(uid: string, value: Record<string, any>) {
     await this.writeSession(uid, value)
 
     return this.createSID(uid)
   }
 
-  async writeSession(uid: string, value: SessionValue) {
+  async writeSession(uid: string, value: Record<string, any>) {
     await SessionModel.user.set(uid, value)
   }
 

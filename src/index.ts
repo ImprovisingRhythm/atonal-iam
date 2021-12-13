@@ -14,6 +14,8 @@ export * from './middlewares'
 export * from './models'
 export * from './providers'
 export * from './services'
+export * from './types/auth'
+export * from './utils/mask-string'
 
 export const useIAM = (configs: IAMConfigs) => {
   return usePlugin(async (instance, _, next) => {
