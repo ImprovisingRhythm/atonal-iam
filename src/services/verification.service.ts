@@ -77,8 +77,8 @@ export class VerificationService {
     const payload = await VerificationModel.ticket.get(ticket)
 
     if (
-      (type === 'email' && payload === type + email) ||
-      (type === 'phoneNumber' && payload === type + email)
+      (type === 'email' && payload === `${type}:${email}`) ||
+      (type === 'phoneNumber' && payload === `${type}:${phoneNumber}`)
     ) {
       await VerificationModel.ticket.remove(ticket)
     } else {
@@ -91,7 +91,7 @@ export class VerificationService {
 
     await VerificationModel.ticket.set(
       ticket,
-      type + value,
+      `${type}:${value}`,
       this.configs.verification.ticket.expiresIn,
     )
 
