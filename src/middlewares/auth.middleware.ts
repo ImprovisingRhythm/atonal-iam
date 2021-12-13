@@ -51,7 +51,10 @@ export const requireAuth = ({
         throw new BadRequest('unrecognized token format')
       }
 
-      req.state.user = await authService.instance.getSessionByToken(token)
+      const session = await authService.instance.getSessionByToken(token)
+
+      req.state.sid = session.sid
+      req.state.user = session.user
     } catch (error) {
       if (throwError) {
         throw error

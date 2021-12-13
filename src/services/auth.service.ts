@@ -23,7 +23,10 @@ export class AuthService {
   }
 
   async getSessionByToken(token: string) {
-    return this.getSessionBySID(this.verifyToken(token))
+    const sid = this.verifyToken(token)
+    const user = await this.getSessionBySID(sid)
+
+    return { sid, user }
   }
 
   async refreshSession(userId: ObjectId) {
@@ -357,11 +360,9 @@ export class AuthService {
       user,
     )
 
-    return {
-      user,
-      sid,
-      token: this.signToken(sid),
-    }
+    const token = this.signToken(sid)
+
+    return { sid, token, user }
   }
 
   private verifyToken(token: string) {
