@@ -46,7 +46,7 @@ export class VerificationService {
   }
 
   async verifySmsCode(phoneNumber: string, code: string) {
-    const payload = await VerificationModel.emailCode.get(code.toUpperCase())
+    const payload = await VerificationModel.smsCode.get(code.toUpperCase())
 
     if (payload !== phoneNumber) {
       throw new PreconditionFailed('invalid code')
