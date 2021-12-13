@@ -1,7 +1,7 @@
 import 'atonal'
 import { ObjectId } from 'bson'
 
-export declare type AuthSource = 'user' | 'client' | 'directAccess'
+export declare type AuthSource = 'user' | 'client' | 'system'
 
 export declare interface UserAuthInfo {
   _id: ObjectId

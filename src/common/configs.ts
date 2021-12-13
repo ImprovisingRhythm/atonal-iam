@@ -10,7 +10,7 @@ export interface IAMConfigs {
     userProfile: TObject<{}>
   }
   auth: {
-    directAccessToken: string
+    systemToken: string
     session: {
       expiresIn: string
       cookie: {

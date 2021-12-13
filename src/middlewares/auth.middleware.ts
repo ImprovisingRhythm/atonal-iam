@@ -12,11 +12,11 @@ export interface AuthGuardOptions {
 }
 
 export const requireAuth = ({
-  sources = ['user', 'directAccess'],
+  sources = ['user', 'system'],
   throwError = true,
 }: AuthGuardOptions = {}) => {
   return useMiddleware(async req => {
-    const { directAccessToken } = configs.instance.auth
+    const { systemToken } = configs.instance.auth
     const { key = 'atonal_sid', signed } = configs.instance.auth.session.cookie
 
     try {
@@ -34,10 +34,10 @@ export const requireAuth = ({
       }
 
       if (
-        sources.includes('directAccess') &&
-        req.headers['x-direct-access-token'] === directAccessToken
+        sources.includes('system') &&
+        req.headers['x-system-token'] === systemToken
       ) {
-        req.state.authSource = 'directAccess'
+        req.state.authSource = 'system'
         return
       }
 
