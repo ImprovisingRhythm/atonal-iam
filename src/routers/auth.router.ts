@@ -33,9 +33,9 @@ router.get('/session', {
       // However, set IP on this request may not reflect the realtime IP of the user
       await userService.instance.setUserIP(user._id, req.ip, 'session')
 
-      return { hasSession: true, user }
+      return { authenticated: true, user }
     } else {
-      return { hasSession: false }
+      return { authenticated: false }
     }
   },
 })
