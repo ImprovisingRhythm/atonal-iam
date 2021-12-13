@@ -2,6 +2,7 @@ import { Forbidden, transform, Type, useInstance, useRouter } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { requireAuth } from '../middlewares/auth.middleware'
 import { rateLimit } from '../middlewares/rate-limit.middleware'
+import { statusCode } from '../middlewares/status.middleware'
 import { RoleProvider } from '../providers/role.provider'
 
 const roleProvider = useInstance<RoleProvider>('IAM.provider.role')
@@ -18,6 +19,7 @@ const router = useRouter({
 
 // @ts-ignore
 router.post('/', {
+  middlewares: [statusCode(201)],
   schema: {
     body: Type.Object({
       name: Type.String(),

@@ -10,6 +10,11 @@ import { SessionService } from './services/session.service'
 import { UserService } from './services/user.service'
 import { VerificationService } from './services/verification.service'
 
+export * from './middlewares'
+export * from './models'
+export * from './providers'
+export * from './services'
+
 export const useIAM = (configs: IAMConfigs) => {
   return usePlugin(async (instance, _, next) => {
     await useDB({
