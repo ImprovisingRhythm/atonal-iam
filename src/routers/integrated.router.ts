@@ -5,7 +5,6 @@ const router = useRouter({
   middlewares: [requireAuth({ mode: 'api-only' })],
 })
 
-// @ts-ignore
 router.get('/permissions', {
   handler: async () => {
     return [

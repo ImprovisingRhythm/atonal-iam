@@ -8,7 +8,6 @@ const verificationService = useInstance<VerificationService>(
 
 const router = useRouter()
 
-// @ts-ignore
 router.post('/send-email-code', {
   middlewares: [
     rateLimit({

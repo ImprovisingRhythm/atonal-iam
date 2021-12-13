@@ -17,7 +17,6 @@ const router = useRouter({
   ],
 })
 
-// @ts-ignore
 router.post('/', {
   middlewares: [statusCode(201)],
   schema: {

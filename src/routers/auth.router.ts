@@ -14,7 +14,6 @@ const userService = useInstance<UserService>('IAM.service.user')
 
 const router = useRouter()
 
-// @ts-ignore
 router.get('/session', {
   middlewares: [
     requireAuth({

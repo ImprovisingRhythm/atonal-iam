@@ -20,7 +20,6 @@ const router = useRouter({
   ],
 })
 
-// @ts-ignore
 router.get('/', {
   schema: {
     querystring: Type.Object({

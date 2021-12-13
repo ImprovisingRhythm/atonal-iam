@@ -7,7 +7,7 @@ export interface IAMConfigs {
     redis: RedisConfig
   }
   schemas: {
-    userProfile: TObject<any>
+    userProfile: TObject<{}>
   }
   auth: {
     apiToken: string
