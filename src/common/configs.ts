@@ -17,12 +17,13 @@ export interface IAMConfigs {
     }
     session: {
       expiresIn: string
-    }
-    cookie: {
-      domain?: string
-      signed?: boolean
-      httpOnly?: boolean
-      maxAge?: number
+      cookie: {
+        key?: string
+        domain?: string
+        signed?: boolean
+        httpOnly?: boolean
+        maxAge?: number
+      }
     }
   }
   verification: {

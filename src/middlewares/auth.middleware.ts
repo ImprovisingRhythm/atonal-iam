@@ -17,10 +17,12 @@ export const requireAuth = ({
   throwError = true,
 }: AuthGuardOptions = {}) => {
   return useMiddleware(async req => {
+    const { key = 'atonal_sid', signed } = configs.instance.auth.session.cookie
+
     try {
-      const payload = req.cookies['atonal_sid'] as string | undefined
+      const payload = req.cookies[key] as string | undefined
       const sid = payload
-        ? configs.instance.auth.cookie.signed
+        ? signed
           ? req.unsignCookie(payload).value
           : payload
         : null

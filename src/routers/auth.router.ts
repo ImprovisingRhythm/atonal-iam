@@ -144,14 +144,21 @@ router.post('/sign-in', {
 
     await userService.instance.setUserIP(resData.user._id, req.ip, 'signIn')
 
-    res.setCookie('atonal_sid', resData.sid, {
-      domain: configs.instance.auth.cookie.domain,
+    const {
+      key = 'atonal_sid',
+      domain,
+      signed,
+      maxAge,
+    } = configs.instance.auth.session.cookie
+
+    res.setCookie(key, resData.sid, {
+      domain,
       path: '/',
       sameSite: 'none',
       secure: true,
       httpOnly: true,
-      signed: configs.instance.auth.cookie.signed,
-      maxAge: configs.instance.auth.cookie.maxAge,
+      signed,
+      maxAge,
     })
 
     return resData
