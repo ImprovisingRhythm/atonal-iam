@@ -2,6 +2,8 @@ import { randomString, Unauthorized } from 'atonal'
 import { IAMConfigs } from '../common/configs'
 import { SessionModel } from '../models'
 
+export type SessionValue = Record<string, any>
+
 export class SessionService {
   constructor(private configs: IAMConfigs) {}
 
@@ -9,17 +11,17 @@ export class SessionService {
     return SessionModel.user.has(uid)
   }
 
-  async createSession(uid: string, value: Record<string, any>) {
+  async createSession(uid: string, value: SessionValue) {
     await this.writeSession(uid, value)
 
     return this.createSID(uid)
   }
 
-  async writeSession(uid: string, value: Record<string, any>) {
+  async writeSession(uid: string, value: SessionValue) {
     await SessionModel.user.set(uid, value)
   }
 
-  async getSession<T>(sid: string) {
+  async getSession<T = SessionValue>(sid: string) {
     const uid = await this.validateSID(sid)
     const session = await SessionModel.user.get(uid)
 

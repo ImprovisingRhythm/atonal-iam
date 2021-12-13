@@ -19,7 +19,15 @@ export class AuthService {
   constructor(private configs: IAMConfigs) {}
 
   async getSessionBySID(sid: string) {
-    return this.sessionService.getSession<UserAuthInfo>(sid)
+    const payload = await this.sessionService.getSession(sid)
+
+    if (payload._id) {
+      Object.assign(payload, {
+        _id: ObjectId.createFromHexString(payload._id),
+      })
+    }
+
+    return payload as UserAuthInfo
   }
 
   async getSessionByToken(token: string) {
