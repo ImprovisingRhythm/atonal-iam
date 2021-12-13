@@ -304,6 +304,8 @@ export class AuthService {
         _id: 1,
         roles: 1,
         permissions: 1,
+        emailVerified: 1,
+        phoneNumberVerified: 1,
         blocked: 1,
       },
     })
@@ -341,6 +343,8 @@ export class AuthService {
     const authInfo: UserAuthInfo = {
       _id: user._id,
       permissions: Array.from(permissions),
+      emailVerified: user.emailVerified,
+      phoneNumberVerified: user.phoneNumberVerified,
     }
 
     return authInfo

@@ -6,6 +6,8 @@ import { AclTarget, Permission, Role } from '../models'
 declare interface UserAuthInfo {
   _id: ObjectId
   permissions: string[]
+  emailVerified?: boolean
+  phoneNumberVerified?: boolean
 }
 
 declare type UserAuthInfoJwtPayload = UserAuthInfo & JwtPayload
@@ -13,7 +15,6 @@ declare type UserAuthInfoJwtPayload = UserAuthInfo & JwtPayload
 declare module 'fastify' {
   interface RequestState {
     withApiToken?: boolean
-    did: string
     sid: string
     user: UserAuthInfo
   }
