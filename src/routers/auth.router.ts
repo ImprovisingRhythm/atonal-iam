@@ -26,16 +26,16 @@ router.get('/session', {
     }),
   ],
   handler: async req => {
-    const { user } = req.state
+    const { sid, user } = req.state
 
     if (user) {
       // It's not wise to set user's IP on each request
       // However, set IP on this request may not reflect the realtime IP of the user
       await userService.instance.setUserIP(user._id, req.ip, 'session')
 
-      return { authenticated: true, user }
+      return { sid, user }
     } else {
-      return { authenticated: false }
+      return {}
     }
   },
 })
