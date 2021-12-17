@@ -69,7 +69,11 @@ router.get('/:userId', {
       userId: ObjectId.createFromHexString,
     })
 
-    if (authSource === 'user' && !user.permissions.includes('getUsers')) {
+    if (
+      authSource === 'user' &&
+      !user.permissions.includes('getUsers') &&
+      !user._id.equals(userId)
+    ) {
       throw new Forbidden()
     }
 
@@ -90,7 +94,11 @@ router.patch('/:userId/profile', {
       userId: ObjectId.createFromHexString,
     })
 
-    if (authSource === 'user' && !user.permissions.includes('updateUsers')) {
+    if (
+      authSource === 'user' &&
+      !user.permissions.includes('updateUsers') &&
+      !user._id.equals(userId)
+    ) {
       throw new Forbidden()
     }
 
@@ -111,7 +119,11 @@ router.put('/:userId/profile', {
       userId: ObjectId.createFromHexString,
     })
 
-    if (authSource === 'user' && !user.permissions.includes('updateUsers')) {
+    if (
+      authSource === 'user' &&
+      !user.permissions.includes('updateUsers') &&
+      !user._id.equals(userId)
+    ) {
       throw new Forbidden()
     }
 
