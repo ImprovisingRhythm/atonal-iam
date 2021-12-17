@@ -14,7 +14,7 @@ export interface UserIPs {
   signUp?: string
 }
 
-export type UserProfile = Record<string, any>
+export interface UserProfile extends Record<string, any> {}
 
 export interface User extends BaseModel, Timestamps {
   roles?: Ref<Role>[]
