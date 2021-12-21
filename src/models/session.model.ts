@@ -1,7 +1,7 @@
-import { useKV, useMap, useMultiModel } from 'atonal-db'
+import { useKV, useMultiModel } from 'atonal-db'
 
 export const SessionModel = useMultiModel({
-  user: useMap({
+  user: useKV({
     name: 'session:user',
     type: 'record',
   }),

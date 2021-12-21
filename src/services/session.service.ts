@@ -22,12 +22,22 @@ export class SessionService {
   }
 
   async getSession<T = SessionValue>(sid: string) {
-    const uid = await this.validateSID(sid)
+    const uid = await SessionModel.sid.get(sid)
+
+    if (uid === null) {
+      throw new Unauthorized('invalid sid')
+    }
+
     const session = await SessionModel.user.get(uid)
 
     if (session === null) {
       throw new Unauthorized('no matching session')
     }
+
+    // make alive without blocking
+    this.makeAlive(sid, uid)
+      .then()
+      .catch(err => console.log(err))
 
     return session as T
   }
@@ -39,28 +49,24 @@ export class SessionService {
   async createSID(uid: string) {
     const sid = randomString(8)
 
-    await SessionModel.sid.set(sid, uid, this.configs.auth.session.expiresIn)
+    // make alive without blocking
+    this.makeAlive(sid, uid)
+      .then()
+      .catch(err => console.log(err))
 
     return sid
   }
 
-  async renewSID(sid: string) {
-    await SessionModel.sid.expire(sid, this.configs.auth.session.expiresIn)
-  }
-
-  async validateSID(sid: string) {
-    const uid = await SessionModel.sid.get(sid)
-
-    if (uid === null) {
-      throw new Unauthorized('no matching session')
-    }
-
-    await this.renewSID(sid)
-
-    return uid
-  }
-
   async deleteSID(sid: string) {
     await SessionModel.sid.remove(sid)
+  }
+
+  private async makeAlive(sid: string, uid: string) {
+    const { expiresIn } = this.configs.auth.session
+
+    await Promise.all([
+      SessionModel.sid.expire(sid, expiresIn),
+      SessionModel.user.expire(uid, expiresIn),
+    ])
   }
 }
