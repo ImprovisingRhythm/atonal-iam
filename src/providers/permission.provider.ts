@@ -1,7 +1,30 @@
 import { Conflict, ensureValues, NotFound, useInstance } from 'atonal'
-import { Permission, PermissionModel, RoleModel, UserModel } from '../models'
+import {
+  Permission,
+  PermissionModel,
+  RoleModel,
+  SideloadablePermission,
+  UserModel,
+} from '../models'
 
 export class PermissionProvider {
+  async sideloadPermissions(permissions: SideloadablePermission[]) {
+    for (const permission of permissions) {
+      const { name, alias, description } = permission
+
+      try {
+        const created = await this.createPermission(name, {
+          alias,
+          description,
+        })
+
+        console.log(created)
+      } catch {
+        // ...
+      }
+    }
+  }
+
   async createPermission(
     name: string,
     {

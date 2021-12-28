@@ -30,7 +30,7 @@ router.post('/', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(['account.admin', 'account.createUser'])
+    req.guardUserPermission(['iam.root', 'iam.createUser'])
 
     return userProvider.instance.createUser(req.body)
   },
@@ -55,7 +55,7 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(['account.admin', 'account.getUsers'])
+    req.guardUserPermission(['iam.root', 'iam.getUsers'])
 
     const {
       userId,
@@ -99,10 +99,12 @@ router.get('/:userId', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(['account.admin', 'account.getUsers'])
-
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
+    })
+
+    req.guardUserPermission(['iam.root', 'iam.getUsers'], () => {
+      return userId.equals(req.state.user._id)
     })
 
     return userProvider.instance.getUser(userId)
@@ -119,10 +121,12 @@ router.patch('/:userId/profile', {
     ),
   }),
   handler: async req => {
-    req.guardUserPermission(['account.admin', 'account.updateUsers'])
-
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
+    })
+
+    req.guardUserPermission(['iam.root', 'iam.updateUsers'], () => {
+      return userId.equals(req.state.user._id)
     })
 
     return userProvider.instance.updateProfile(userId, req.body)
@@ -137,10 +141,12 @@ router.put('/:userId/profile', {
     body: configs.instance.schemas.user?.profile ?? DefaultUserProfileSchema,
   }),
   handler: async req => {
-    req.guardUserPermission(['account.admin', 'account.updateUsers'])
-
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
+    })
+
+    req.guardUserPermission(['iam.root', 'iam.updateUsers'], () => {
+      return userId.equals(req.state.user._id)
     })
 
     return userProvider.instance.updateFullProfile(userId, req.body)
@@ -157,7 +163,7 @@ router.patch('/:userId/meta', {
     ),
   }),
   handler: async req => {
-    req.guardUserPermission(['account.admin', 'account.updateUsers'])
+    req.guardUserPermission(['iam.root', 'iam.updateUsers'])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
@@ -177,7 +183,7 @@ router.put('/:userId/permissions', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('account.admin')
+    req.guardUserPermission('iam.root')
 
     const { permissions } = req.body
     const { userId } = transform(req.params, {
@@ -198,7 +204,7 @@ router.put('/:userId/roles', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('account.admin')
+    req.guardUserPermission('iam.root')
 
     const { roles } = req.body
     const { userId } = transform(req.params, {
@@ -216,7 +222,7 @@ router.post('/:userId/block', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('account.admin')
+    req.guardUserPermission('iam.root')
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
@@ -233,7 +239,7 @@ router.post('/:userId/unblock', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('account.admin')
+    req.guardUserPermission('iam.root')
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,

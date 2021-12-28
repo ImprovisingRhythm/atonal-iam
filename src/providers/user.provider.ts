@@ -1,7 +1,6 @@
 import {
   Conflict,
   ensureValues,
-  getInstance,
   hashPassword,
   NotFound,
   randomString,
@@ -18,7 +17,9 @@ import {
   UserProfile,
 } from '../models'
 import { desensitizeUser, desensitizeUsers } from '../utils'
-import { AuthProvider } from './auth.provider'
+import { useAuthProvider } from './auth.provider'
+
+const authProvider = useAuthProvider()
 
 export class UserProvider {
   async createUser({
@@ -207,7 +208,7 @@ export class UserProvider {
 
     const user = await this.updateUser(userId, { permissions })
 
-    await this.authProvider.refreshSession(user._id)
+    await authProvider.instance.refreshSession(user._id)
 
     return { permissions }
   }
@@ -225,13 +226,13 @@ export class UserProvider {
 
     const user = await this.updateUser(userId, { roles })
 
-    await this.authProvider.refreshSession(user._id)
+    await authProvider.instance.refreshSession(user._id)
 
     return { roles }
   }
 
   async blockUser(userId: ObjectId) {
-    await this.authProvider.signOutAll(userId)
+    await authProvider.instance.signOutAll(userId)
     await this.updateUser(userId, { blocked: true })
 
     return { success: true }
@@ -241,10 +242,6 @@ export class UserProvider {
     await this.updateUser(userId, { blocked: false })
 
     return { success: true }
-  }
-
-  private get authProvider() {
-    return getInstance<AuthProvider>('IAM.provider.auth')
   }
 }
 

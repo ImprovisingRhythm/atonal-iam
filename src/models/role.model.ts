@@ -1,5 +1,10 @@
 import { BaseModel, Timestamps, useCollection } from 'atonal-db'
 
+export type SideloadableRole = Pick<
+  Role,
+  'name' | 'permissions' | 'alias' | 'description'
+>
+
 export interface Role extends BaseModel, Timestamps {
   name: string
   permissions: string[]
