@@ -2,15 +2,15 @@ import { hashPassword, NotFound, sha1, Unauthorized, useInstance } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { IAMConfigs } from '../common/configs'
 import { UserState } from '../types/auth'
-import { useCaptchaProvider } from './captcha.provider'
-import { useRoleProvider } from './role.provider'
-import { useSessionProvider } from './session.provider'
-import { useUserProvider } from './user.provider'
+import { CaptchaProvider } from './captcha.provider'
+import { RoleProvider } from './role.provider'
+import { SessionProvider } from './session.provider'
+import { UserProvider } from './user.provider'
 
-const captchaProvider = useCaptchaProvider()
-const roleProvider = useRoleProvider()
-const sessionProvider = useSessionProvider()
-const userProvider = useUserProvider()
+const captchaProvider = useInstance<CaptchaProvider>('IAM.provider.captcha')
+const roleProvider = useInstance<RoleProvider>('IAM.provider.role')
+const sessionProvider = useInstance<SessionProvider>('IAM.provider.session')
+const userProvider = useInstance<UserProvider>('IAM.provider.user')
 
 export class AuthProvider {
   constructor(private configs: IAMConfigs) {}

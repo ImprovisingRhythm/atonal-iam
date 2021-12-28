@@ -17,9 +17,9 @@ import {
   UserProfile,
 } from '../models'
 import { desensitizeUser, desensitizeUsers } from '../utils'
-import { useAuthProvider } from './auth.provider'
+import { AuthProvider } from './auth.provider'
 
-const authProvider = useAuthProvider()
+const authProvider = useInstance<AuthProvider>('IAM.provider.auth')
 
 export class UserProvider {
   async createUser({
