@@ -1,6 +1,5 @@
-import { Conflict, ensureValues, NotFound } from 'atonal'
-import { ObjectId } from 'atonal-db'
-import { Role, RoleModel, UserModel } from '../models'
+import { Conflict, ensureValues, NotFound, useInstance } from 'atonal'
+import { PermissionModel, Role, RoleModel, UserModel } from '../models'
 
 export class RoleProvider {
   async createRole(
@@ -52,8 +51,12 @@ export class RoleProvider {
     return { count, results }
   }
 
-  async getRole(roleId: ObjectId) {
-    const role = await RoleModel.findById(roleId)
+  async getRolesByNames(names: string[]) {
+    return RoleModel.find({ name: { $in: names } }).toArray()
+  }
+
+  async getRole(name: string) {
+    const role = await RoleModel.findOne({ name })
 
     if (!role) {
       throw new NotFound('role is not found')
@@ -63,12 +66,24 @@ export class RoleProvider {
   }
 
   async updateRole(
-    roleId: ObjectId,
-    partial: Partial<Pick<Role, 'alias' | 'description'>>,
+    name: string,
+    partial: Partial<Pick<Role, 'permissions' | 'alias' | 'description'>>,
   ) {
+    if (partial.permissions) {
+      const count = await PermissionModel.countDocuments({
+        name: {
+          $in: partial.permissions,
+        },
+      })
+
+      if (count !== partial.permissions.length) {
+        throw new NotFound('some permissions are not found')
+      }
+    }
+
     const $set = ensureValues(partial)
-    const role = await RoleModel.findByIdAndUpdate(
-      roleId,
+    const role = await RoleModel.findOneAndUpdate(
+      { name },
       { $set },
       { returnDocument: 'after' },
     )
@@ -80,13 +95,18 @@ export class RoleProvider {
     return role
   }
 
-  async deleteRole(roleId: ObjectId) {
-    await RoleModel.deleteById(roleId)
+  async deleteRole(name: string) {
+    const result = await RoleModel.deleteOne({ name })
+
+    if (result.deletedCount === 0) {
+      throw new NotFound('role is not found')
+    }
+
     await UserModel.updateMany(
-      { roles: roleId },
+      { roles: name },
       {
         $pull: {
-          roles: roleId,
+          roles: name,
         },
       },
     )
@@ -94,3 +114,6 @@ export class RoleProvider {
     return { success: true }
   }
 }
+
+export const useRoleProvider = () =>
+  useInstance<RoleProvider>('IAM.provider.role')

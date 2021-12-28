@@ -1,39 +1,54 @@
 import { useInstance, usePlugin } from 'atonal'
 import { useDB } from 'atonal-db'
 import { IAMConfigs } from './common/configs'
-import { RoleModel, SessionModel, UserModel, VerificationModel } from './models'
-import { RoleProvider } from './providers/role.provider'
-import { UserProvider } from './providers/user.provider'
+import {
+  CaptchaModel,
+  PermissionModel,
+  RoleModel,
+  SessionModel,
+  UserModel,
+} from './models'
+import { userPermissionPlugin } from './plugins'
+import {
+  AuthProvider,
+  CaptchaProvider,
+  PermissionProvider,
+  RoleProvider,
+  SessionProvider,
+  UserProvider,
+} from './providers'
 import router from './routers'
-import { AuthService } from './services/auth.service'
-import { SessionService } from './services/session.service'
-import { UserService } from './services/user.service'
-import { VerificationService } from './services/verification.service'
 
+export * from './types/auth'
+export * from './common/configs'
 export * from './middlewares'
 export * from './models'
 export * from './providers'
-export * from './services'
-export * from './types/auth'
-export * from './utils/mask-string'
+export * from './utils'
 
 export const useIAM = (configs: IAMConfigs) => {
   return usePlugin(async (instance, _, next) => {
     await useDB({
       databases: configs.databases,
-      models: [RoleModel, UserModel, SessionModel, VerificationModel],
+      models: [
+        CaptchaModel,
+        PermissionModel,
+        RoleModel,
+        SessionModel,
+        UserModel,
+      ],
     })
 
     useInstance('IAM.configs', configs)
 
-    useInstance('IAM.provider.user', new UserProvider())
+    useInstance('IAM.provider.auth', new AuthProvider(configs))
+    useInstance('IAM.provider.captcha', new CaptchaProvider(configs))
+    useInstance('IAM.provider.permission', new PermissionProvider())
     useInstance('IAM.provider.role', new RoleProvider())
+    useInstance('IAM.provider.session', new SessionProvider(configs))
+    useInstance('IAM.provider.user', new UserProvider())
 
-    useInstance('IAM.service.session', new SessionService(configs))
-    useInstance('IAM.service.auth', new AuthService(configs))
-    useInstance('IAM.service.verification', new VerificationService(configs))
-    useInstance('IAM.service.user', new UserService())
-
+    instance.register(userPermissionPlugin)
     instance.register(router.compile())
 
     next()

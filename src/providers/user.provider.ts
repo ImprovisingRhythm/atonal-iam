@@ -1,54 +1,68 @@
-import { ensureValues, NotFound } from 'atonal'
+import {
+  Conflict,
+  ensureValues,
+  getInstance,
+  hashPassword,
+  NotFound,
+  randomString,
+  useInstance,
+} from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { chain } from 'lodash'
-import { User, UserModel, UserProfile } from '../models'
 import {
-  maskEmail,
-  maskIdCardNumber,
-  maskPhoneNumber,
-} from '../utils/mask-string'
+  PermissionModel,
+  RoleModel,
+  User,
+  UserMeta,
+  UserModel,
+  UserProfile,
+} from '../models'
+import { desensitizeUser, desensitizeUsers } from '../utils'
+import { AuthProvider } from './auth.provider'
 
-const desensitizeUser = (user: User) => {
-  // @ts-ignore
-  delete user.salt
+export class UserProvider {
+  async createUser({
+    username,
+    email,
+    emailVerified,
+    phoneNumber,
+    phoneNumberVerified,
+    password,
+  }: {
+    username?: string
+    email?: string
+    emailVerified?: boolean
+    phoneNumber?: string
+    phoneNumberVerified?: boolean
+    password?: string
+  }) {
+    const salt = randomString(8)
+    const pwdHash = password ? hashPassword(password + salt) : undefined
 
-  // @ts-ignore
-  delete user.pwdHash
+    try {
+      const user = await UserModel.create(
+        ensureValues({
+          username,
+          email,
+          emailVerified,
+          phoneNumber,
+          phoneNumberVerified,
+          salt,
+          pwdHash,
+        }),
+      )
 
-  // Mask id card number
-  if (user.identity) {
-    const { idCardNumber } = user.identity
-
-    if (idCardNumber) {
-      user.identity.idCardNumber = maskIdCardNumber(idCardNumber)
+      return desensitizeUser(user)
+    } catch {
+      throw new Conflict('user exists')
     }
   }
 
-  // Mask email address
-  if (user.email) {
-    user.email = maskEmail(user.email)
-  }
-
-  // Mask phone number
-  if (user.phoneNumber) {
-    user.phoneNumber = maskPhoneNumber(user.phoneNumber)
-  }
-
-  return user
-}
-
-const desensitizeUsers = (users: User[]) => {
-  for (const user of users) {
-    desensitizeUser(user)
-  }
-
-  return users
-}
-
-export class UserProvider {
   async getUsers({
     userId,
-    roleId,
+    userIds,
+    role,
+    permission,
     username,
     email,
     phoneNumber,
@@ -58,7 +72,9 @@ export class UserProvider {
     limit = 20,
   }: {
     userId?: ObjectId
-    roleId?: ObjectId
+    userIds?: ObjectId[]
+    role?: string
+    permission?: string
     username?: string
     email?: string
     phoneNumber?: string
@@ -69,7 +85,9 @@ export class UserProvider {
   }) {
     const filter = ensureValues({
       _id: userId,
-      roles: roleId,
+      ...(userIds && { _id: { $in: userIds } }),
+      roles: role,
+      permissions: permission,
       username,
       email,
       phoneNumber,
@@ -98,6 +116,29 @@ export class UserProvider {
     return desensitizeUser(user)
   }
 
+  async getRawUserBy(filter: {
+    _id?: ObjectId
+    username?: string
+    email?: string
+    phoneNumber?: string
+  }) {
+    return UserModel.findOne(filter)
+  }
+
+  async updateUser(userId: ObjectId, partial: Partial<User>) {
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: partial },
+      { returnDocument: 'after' },
+    )
+
+    if (!user) {
+      throw new NotFound('user is not found')
+    }
+
+    return user
+  }
+
   async updateProfile(userId: ObjectId, partial: Partial<UserProfile>) {
     const $set = ensureValues(
       chain(partial)
@@ -115,12 +156,11 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
-    return user.profile
+    return user.profile ?? {}
   }
 
   async updateFullProfile(userId: ObjectId, full: UserProfile) {
     const profile = ensureValues(full)
-
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $set: { profile } },
@@ -131,6 +171,82 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
-    return user.profile
+    return user.profile ?? {}
+  }
+
+  async updateMeta(userId: ObjectId, partial: Partial<UserMeta>) {
+    const $set = ensureValues(
+      chain(partial)
+        .mapKeys((_, key) => `meta.${key}`)
+        .value(),
+    )
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set },
+      { returnDocument: 'after' },
+    )
+
+    if (!user) {
+      throw new NotFound('user is not found')
+    }
+
+    return user.meta ?? {}
+  }
+
+  async updatePermissions(userId: ObjectId, permissions: string[]) {
+    const count = await PermissionModel.countDocuments({
+      name: {
+        $in: permissions,
+      },
+    })
+
+    if (count !== permissions.length) {
+      throw new NotFound('some permissions are not found')
+    }
+
+    const user = await this.updateUser(userId, { permissions })
+
+    await this.authProvider.refreshSession(user._id)
+
+    return { permissions }
+  }
+
+  async updateRoles(userId: ObjectId, roles: string[]) {
+    const count = await RoleModel.countDocuments({
+      name: {
+        $in: roles,
+      },
+    })
+
+    if (count !== roles.length) {
+      throw new NotFound('some roles are not found')
+    }
+
+    const user = await this.updateUser(userId, { roles })
+
+    await this.authProvider.refreshSession(user._id)
+
+    return { roles }
+  }
+
+  async blockUser(userId: ObjectId) {
+    await this.authProvider.signOutAll(userId)
+    await this.updateUser(userId, { blocked: true })
+
+    return { success: true }
+  }
+
+  async unblockUser(userId: ObjectId) {
+    await this.updateUser(userId, { blocked: false })
+
+    return { success: true }
+  }
+
+  private get authProvider() {
+    return getInstance<AuthProvider>('IAM.provider.auth')
   }
 }
+
+export const useUserProvider = () =>
+  useInstance<UserProvider>('IAM.provider.user')

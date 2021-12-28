@@ -1,8 +1,8 @@
 import { useKV, useMultiModel } from 'atonal-db'
 
 export const SessionModel = useMultiModel({
-  user: useKV({
-    name: 'session:user',
+  store: useKV({
+    name: 'session:store',
     type: 'record',
   }),
   sid: useKV({

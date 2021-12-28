@@ -1,18 +1,18 @@
 import { useRouter } from 'atonal'
-import clientRouter from './client'
 import authRouter from './auth.router'
+import captchaRouter from './captcha.router'
+import permissionRouter from './permission.router'
 import roleRouter from './role.router'
-import systemRouter from './system.router'
+import sessionRouter from './session.router'
 import userRouter from './user.router'
-import verificationRouter from './verification.router'
 
 const router = useRouter()
 
-router.use('/client', clientRouter)
 router.use('/auth', authRouter)
+router.use('/captcha', captchaRouter)
+router.use('/permissions', permissionRouter)
 router.use('/roles', roleRouter)
-router.use('/system', systemRouter)
+router.use('/session', sessionRouter)
 router.use('/users', userRouter)
-router.use('/verification', verificationRouter)
 
 export default router

@@ -1,9 +1,7 @@
 import 'atonal'
 import { ObjectId } from 'bson'
 
-export declare type AuthSource = 'user' | 'client' | 'system'
-
-export declare interface UserAuthInfo {
+export declare interface UserState {
   _id: ObjectId
   permissions: string[]
   emailVerified?: boolean
@@ -12,8 +10,7 @@ export declare interface UserAuthInfo {
 
 declare module 'fastify' {
   interface RequestState {
-    authSource: AuthSource
     sid: string
-    user: UserAuthInfo
+    user: UserState
   }
 }

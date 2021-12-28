@@ -1,3 +1,6 @@
-export * from './client.provider'
+export * from './auth.provider'
+export * from './captcha.provider'
+export * from './permission.provider'
 export * from './role.provider'
+export * from './session.provider'
 export * from './user.provider'

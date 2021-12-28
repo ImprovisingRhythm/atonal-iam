@@ -1,23 +1,17 @@
-import { BaseModel, Ref, Timestamps, useCollection } from 'atonal-db'
-import { Role } from './role.model'
+import { BaseModel, Timestamps, useCollection } from 'atonal-db'
 
-export interface UserIdentity {
+export interface UserNationalId {
   idCardType?: string
   idCardNumber?: string
   name?: string
   verified?: boolean
 }
 
-export interface UserIPs {
-  session?: string
-  signIn?: string
-  signUp?: string
-}
-
 export interface UserProfile extends Record<string, any> {}
+export interface UserMeta extends Record<string, any> {}
 
 export interface User extends BaseModel, Timestamps {
-  roles?: Ref<Role>[]
+  roles?: string[]
   permissions?: string[]
   username?: string
   email?: string
@@ -27,10 +21,12 @@ export interface User extends BaseModel, Timestamps {
   salt: string
   pwdHash?: string
   blocked?: boolean
-  identity?: UserIdentity
-  ips?: UserIPs
   profile?: UserProfile
+  nationalId?: UserNationalId
+  meta?: UserMeta
 }
+
+export type DesensitizedUser = Omit<User, 'salt' | 'pwdHash'>
 
 export const UserModel = useCollection<User>({
   name: 'user',
@@ -41,5 +37,6 @@ export const UserModel = useCollection<User>({
     [{ email: 1 }, { unique: true, sparse: true }],
     [{ phoneNumber: 1 }, { unique: true, sparse: true }],
     { roles: 1 },
+    { permissions: 1 },
   ],
 })

@@ -1,4 +1,4 @@
-import { TObject } from 'atonal'
+import { TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
 
 export interface IAMConfigs {
@@ -7,40 +7,41 @@ export interface IAMConfigs {
     redis: RedisConfig
   }
   schemas: {
-    userProfile: TObject<{}>
+    user?: {
+      profile?: TObject<{}>
+      meta?: TObject<{}>
+    }
   }
   auth: {
-    systemToken: string
+    keys: {
+      accessKey: string
+      secretKey: string
+    }
     session: {
       expiresIn: string
-      cookie: {
-        key?: string
-        domain?: string
-        signed?: boolean
-        httpOnly?: boolean
-        maxAge?: number
-      }
       token: {
         secret: string
       }
     }
   }
-  verification: {
-    smsCode: {
+  captcha: {
+    email: {
       len: number
       format: 'number-only' | 'uppercase-letter-number'
       expiresIn: string
-      send: (phoneNumber: string, code: string) => Promise<void>
+      sendCode?: (email: string, code: string) => Promise<void>
     }
-    emailCode: {
+    sms: {
       len: number
       format: 'number-only' | 'uppercase-letter-number'
       expiresIn: string
-      send: (email: string, code: string) => Promise<void>
+      sendCode?: (phoneNumber: string, code: string) => Promise<void>
     }
-    ticket: {
+    token: {
       len: number
       expiresIn: string
     }
   }
 }
+
+export const useConfigs = () => useInstance<IAMConfigs>('IAM.configs')

@@ -1,29 +1,51 @@
-import { Forbidden, transform, Type, useInstance, useRouter } from 'atonal'
+import { makeArray, transform, Type, useAuthGuards, useRouter } from 'atonal'
 import { ObjectId } from 'atonal-db'
-import { IAMConfigs } from '../common/configs'
-import { requireAuth } from '../middlewares/auth.middleware'
-import { rateLimit } from '../middlewares/rate-limit.middleware'
-import { UserProvider } from '../providers/user.provider'
-import { UserService } from '../services/user.service'
+import { useConfigs } from '../common/configs'
+import { keyGuard, userGuard } from '../middlewares'
+import { useUserProvider } from '../providers'
 
-const configs = useInstance<IAMConfigs>('IAM.configs')
-const userProvider = useInstance<UserProvider>('IAM.provider.user')
-const userService = useInstance<UserService>('IAM.service.user')
+const configs = useConfigs()
+const userProvider = useUserProvider()
+
+const DefaultUserProfileSchema = Type.Object({})
+const DefaultUserMetaSchema = Type.Object({})
 
 const router = useRouter({
   middlewares: [
-    requireAuth(),
-    rateLimit({
-      timeWindow: 1000,
-      maxRequests: 20,
+    useAuthGuards({
+      guards: [keyGuard, userGuard],
     }),
   ],
+})
+
+router.post('/', {
+  schema: {
+    body: Type.Object({
+      username: Type.Optional(Type.String()),
+      email: Type.Optional(Type.String({ format: 'email' })),
+      emailVerified: Type.Optional(Type.Boolean()),
+      phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
+      phoneNumberVerified: Type.Optional(Type.Boolean()),
+      password: Type.Optional(Type.String({ format: 'phone-number' })),
+    }),
+  },
+  handler: async req => {
+    req.guardUserPermission(['account.admin', 'account.createUser'])
+
+    return userProvider.instance.createUser(req.body)
+  },
 })
 
 router.get('/', {
   schema: {
     querystring: Type.Object({
       userId: Type.Optional(Type.String({ format: 'object-id' })),
+      userIds: Type.Optional(
+        Type.ArrayOr(Type.String({ format: 'object-id' })),
+      ),
+      role: Type.Optional(Type.String()),
+      permission: Type.Optional(Type.String()),
+      username: Type.Optional(Type.String()),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       sortBy: Type.Optional(Type.Literal(['_id', 'createdAt', 'updatedAt'])),
@@ -33,20 +55,33 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    const { authSource, user } = req.state
-    const { userId, email, phoneNumber, sortBy, orderBy, skip, limit } =
-      transform(req.query, {
-        userId: ObjectId.createFromHexString,
-        skip: Number,
-        limit: Number,
-      })
+    req.guardUserPermission(['account.admin', 'account.getUsers'])
 
-    if (authSource === 'user' && !user.permissions.includes('getUsers')) {
-      throw new Forbidden()
-    }
+    const {
+      userId,
+      userIds,
+      role,
+      permission,
+      username,
+      email,
+      phoneNumber,
+      sortBy,
+      orderBy,
+      skip,
+      limit,
+    } = transform(req.query, {
+      userId: ObjectId.createFromHexString,
+      userIds: x => makeArray(x).map(ObjectId.createFromHexString),
+      skip: Number,
+      limit: Number,
+    })
 
     return userProvider.instance.getUsers({
       userId,
+      userIds,
+      role,
+      permission,
+      username,
       email,
       phoneNumber,
       sortBy,
@@ -64,18 +99,11 @@ router.get('/:userId', {
     }),
   },
   handler: async req => {
-    const { authSource, user } = req.state
+    req.guardUserPermission(['account.admin', 'account.getUsers'])
+
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
-
-    if (
-      authSource === 'user' &&
-      !user.permissions.includes('getUsers') &&
-      !user._id.equals(userId)
-    ) {
-      throw new Forbidden()
-    }
 
     return userProvider.instance.getUser(userId)
   },
@@ -86,21 +114,16 @@ router.patch('/:userId/profile', {
     params: Type.Object({
       userId: Type.String({ format: 'object-id' }),
     }),
-    body: Type.Partial(configs.instance.schemas.userProfile),
+    body: Type.Partial(
+      configs.instance.schemas.user?.profile ?? DefaultUserProfileSchema,
+    ),
   }),
   handler: async req => {
-    const { authSource, user } = req.state
+    req.guardUserPermission(['account.admin', 'account.updateUsers'])
+
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
-
-    if (
-      authSource === 'user' &&
-      !user.permissions.includes('updateUsers') &&
-      !user._id.equals(userId)
-    ) {
-      throw new Forbidden()
-    }
 
     return userProvider.instance.updateProfile(userId, req.body)
   },
@@ -111,23 +134,57 @@ router.put('/:userId/profile', {
     params: Type.Object({
       userId: Type.String({ format: 'object-id' }),
     }),
-    body: configs.instance.schemas.userProfile,
+    body: configs.instance.schemas.user?.profile ?? DefaultUserProfileSchema,
   }),
   handler: async req => {
-    const { authSource, user } = req.state
+    req.guardUserPermission(['account.admin', 'account.updateUsers'])
+
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (
-      authSource === 'user' &&
-      !user.permissions.includes('updateUsers') &&
-      !user._id.equals(userId)
-    ) {
-      throw new Forbidden()
-    }
-
     return userProvider.instance.updateFullProfile(userId, req.body)
+  },
+})
+
+router.patch('/:userId/meta', {
+  schema: () => ({
+    params: Type.Object({
+      userId: Type.String({ format: 'object-id' }),
+    }),
+    body: Type.Partial(
+      configs.instance.schemas.user?.meta ?? DefaultUserMetaSchema,
+    ),
+  }),
+  handler: async req => {
+    req.guardUserPermission(['account.admin', 'account.updateUsers'])
+
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
+
+    return userProvider.instance.updateMeta(userId, req.body)
+  },
+})
+
+router.put('/:userId/permissions', {
+  schema: {
+    params: Type.Object({
+      userId: Type.String({ format: 'object-id' }),
+    }),
+    body: Type.Object({
+      permissions: Type.Array(Type.String()),
+    }),
+  },
+  handler: async req => {
+    req.guardUserPermission('account.admin')
+
+    const { permissions } = req.body
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
+
+    return userProvider.instance.updatePermissions(userId, permissions)
   },
 })
 
@@ -137,27 +194,18 @@ router.put('/:userId/roles', {
       userId: Type.String({ format: 'object-id' }),
     }),
     body: Type.Object({
-      roleIds: Type.Array(Type.String({ format: 'object-id' })),
+      roles: Type.Array(Type.String()),
     }),
   },
   handler: async req => {
-    const { authSource, user } = req.state
-    const { userId, roleIds } = transform(
-      { ...req.params, ...req.body },
-      {
-        userId: ObjectId.createFromHexString,
-        roleIds: ids => ids.map(ObjectId.createFromHexString),
-      },
-    )
+    req.guardUserPermission('account.admin')
 
-    if (
-      authSource === 'user' &&
-      !user.permissions.includes('setUserPermissions')
-    ) {
-      throw new Forbidden()
-    }
+    const { roles } = req.body
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
 
-    return userService.instance.updateRoles(userId, roleIds)
+    return userProvider.instance.updateRoles(userId, roles)
   },
 })
 
@@ -168,16 +216,13 @@ router.post('/:userId/block', {
     }),
   },
   handler: async req => {
-    const { authSource, user } = req.state
+    req.guardUserPermission('account.admin')
+
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (authSource === 'user' && !user.permissions.includes('blockUser')) {
-      throw new Forbidden()
-    }
-
-    return userService.instance.blockUser(userId)
+    return userProvider.instance.blockUser(userId)
   },
 })
 
@@ -188,16 +233,13 @@ router.post('/:userId/unblock', {
     }),
   },
   handler: async req => {
-    const { authSource, user } = req.state
+    req.guardUserPermission('account.admin')
+
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
-    if (authSource === 'user' && !user.permissions.includes('blockUser')) {
-      throw new Forbidden()
-    }
-
-    return userService.instance.unblockUser(userId)
+    return userProvider.instance.unblockUser(userId)
   },
 })
 

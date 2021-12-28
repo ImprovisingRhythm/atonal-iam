@@ -1,116 +1,62 @@
-import { BadRequest, Type, useInstance, useRouter } from 'atonal'
-import { IAMConfigs } from '../common/configs'
-import { requireAuth } from '../middlewares/auth.middleware'
-import { rateLimit } from '../middlewares/rate-limit.middleware'
-import { statusCode } from '../middlewares/status.middleware'
-import { User } from '../models'
-import { AuthService } from '../services/auth.service'
-import { UserService } from '../services/user.service'
-import { UserAuthInfo } from '../types/auth'
+import {
+  BadRequest,
+  Type,
+  useAuthGuards,
+  useRateLimit,
+  useRouter,
+  useStatusCode,
+} from 'atonal'
+import { userGuard } from '../middlewares'
+import { useAuthProvider } from '../providers'
 
-const configs = useInstance<IAMConfigs>('IAM.configs')
-const authService = useInstance<AuthService>('IAM.service.auth')
-const userService = useInstance<UserService>('IAM.service.user')
+const authProvider = useAuthProvider()
 
 const router = useRouter()
 
 router.get('/session', {
   middlewares: [
-    requireAuth({
-      sources: ['user'],
-      throwError: false,
-    }),
-    rateLimit({
-      timeWindow: 1000,
-      maxRequests: 20,
+    useAuthGuards({
+      strategy: 'ignore-error',
+      guards: [userGuard],
     }),
   ],
   handler: async req => {
     const { sid, user } = req.state
 
     if (user) {
-      // It's not wise to set user's IP on each request
-      // However, set IP on this request may not reflect the realtime IP of the user
-      await userService.instance.setUserIP(user._id, req.ip, 'session')
-
-      return { sid, user }
+      return { message: 'OK', sid, user }
     } else {
-      return {}
+      return { message: 'Unauthorized' }
     }
-  },
-})
-
-router.post('/sign-up', {
-  middlewares: [
-    rateLimit({
-      timeWindow: 10000,
-      maxRequests: 20,
-    }),
-    statusCode(201),
-  ],
-  schema: {
-    body: Type.Object({
-      type: Type.Literal(['email', 'phoneNumber']),
-      email: Type.Optional(Type.String({ format: 'email' })),
-      phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-      ticket: Type.Optional(Type.String()),
-      password: Type.Optional(Type.String()),
-    }),
-  },
-  handler: async req => {
-    const { type, email, phoneNumber, ticket, password } = req.body
-
-    let user: Pick<User, '_id'>
-
-    if (type === 'email') {
-      if (!email || !password) {
-        throw new BadRequest('must include [email] and [password]')
-      }
-
-      user = await authService.instance.signUpWithEmail(email, password)
-    } else if (type === 'phoneNumber') {
-      if (!phoneNumber || !ticket) {
-        throw new BadRequest('must include [phone] and [ticket]')
-      }
-
-      user = await authService.instance.signUpWithPhoneNumber(
-        phoneNumber,
-        ticket,
-        password,
-      )
-    } else {
-      throw new BadRequest('unknown [type]')
-    }
-
-    await userService.instance.setUserIP(user._id, req.ip, 'signUp')
-
-    return user
   },
 })
 
 router.post('/sign-in', {
   middlewares: [
-    rateLimit({
+    useRateLimit({
       timeWindow: 10000,
       maxRequests: 20,
     }),
   ],
   schema: {
     body: Type.Object({
-      type: Type.Literal(['email', 'phoneNumber']),
+      type: Type.Literal(['username', 'email', 'phoneNumber']),
+      username: Type.Optional(Type.String()),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       password: Type.Optional(Type.String()),
-      ticket: Type.Optional(Type.String()),
+      token: Type.Optional(Type.String()),
     }),
   },
-  handler: async (req, res) => {
-    const { type, email, phoneNumber, password, ticket } = req.body
+  handler: async req => {
+    const { type, username, email, phoneNumber, password, token } = req.body
 
-    let resData: {
-      sid: string
-      token: string
-      user: UserAuthInfo
+    if (type === 'username') {
+      if (!username || !password) {
+        throw new BadRequest('must include [username] and [password]')
+      }
+
+      return authProvider.instance.signInWithUsername(username, password)
     }
 
     if (type === 'email') {
@@ -118,78 +64,121 @@ router.post('/sign-in', {
         throw new BadRequest('must include [email] and [password]')
       }
 
-      resData = await authService.instance.signInWithEmail(email, password)
-    } else if (type === 'phoneNumber') {
+      return authProvider.instance.signInWithEmail(email, password)
+    }
+
+    if (type === 'phoneNumber') {
       if (!phoneNumber) {
         throw new BadRequest('must include [phone]')
       }
 
       if (password) {
-        resData = await authService.instance.signInWithPhoneNumberAndPassword(
+        return authProvider.instance.signInWithPhoneNumberAndPassword(
           phoneNumber,
           password,
         )
-      } else if (ticket) {
-        resData = await authService.instance.signInWithPhoneNumberAndTicket(
-          phoneNumber,
-          ticket,
-        )
-      } else {
-        throw new BadRequest('must include [password] or [ticket]')
       }
-    } else {
-      throw new BadRequest('unknown [type]')
+
+      if (token) {
+        return authProvider.instance.signInWithPhoneNumberAndToken(
+          phoneNumber,
+          token,
+        )
+      }
+
+      throw new BadRequest('must include [password] or [token]')
     }
 
-    await userService.instance.setUserIP(resData.user._id, req.ip, 'signIn')
+    throw new BadRequest('unknown [type]')
+  },
+})
 
-    const {
-      key = 'atonal_sid',
-      domain,
-      signed,
-      maxAge,
-    } = configs.instance.auth.session.cookie
+router.post('/sign-up', {
+  middlewares: [
+    useRateLimit({
+      timeWindow: 10000,
+      maxRequests: 20,
+    }),
+    useStatusCode(201),
+  ],
+  schema: {
+    body: Type.Object({
+      type: Type.Literal(['username', 'email', 'phoneNumber']),
+      username: Type.Optional(Type.String()),
+      email: Type.Optional(Type.String({ format: 'email' })),
+      phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
+      token: Type.Optional(Type.String()),
+      password: Type.Optional(Type.String()),
+    }),
+  },
+  handler: async req => {
+    const { type, username, email, phoneNumber, token, password } = req.body
 
-    res.setCookie(key, resData.sid, {
-      domain,
-      path: '/',
-      sameSite: 'none',
-      secure: true,
-      httpOnly: true,
-      signed,
-      maxAge,
-    })
+    if (type === 'username') {
+      if (!username || !password) {
+        throw new BadRequest('must include [username] and [password]')
+      }
 
-    return resData
+      return authProvider.instance.signUpWithUsername(username, password)
+    }
+
+    if (type === 'email') {
+      if (!email || !password) {
+        throw new BadRequest('must include [email] and [password]')
+      }
+
+      return authProvider.instance.signUpWithEmail(email, password)
+    }
+
+    if (type === 'phoneNumber') {
+      if (!phoneNumber || !token) {
+        throw new BadRequest('must include [phone] and [token]')
+      }
+
+      return authProvider.instance.signUpWithPhoneNumber(
+        phoneNumber,
+        token,
+        password,
+      )
+    }
+
+    throw new BadRequest('unknown [type]')
   },
 })
 
 router.post('/sign-out', {
+  schema: {
+    body: Type.Object({
+      allSessions: Type.Optional(Type.Boolean()),
+    }),
+  },
   middlewares: [
-    requireAuth(),
-    rateLimit({
+    useAuthGuards({
+      guards: [userGuard],
+    }),
+    useRateLimit({
       timeWindow: 1000,
       maxRequests: 20,
     }),
   ],
-  handler: async (req, res) => {
-    const { sid } = req.state
+  handler: async req => {
+    const { sid, user } = req.state
+    const { allSessions = false } = req.body
 
-    if (sid) {
-      res.clearCookie('atonal_sid')
-      return authService.instance.signOut(sid)
-    } else {
-      return { success: true }
+    if (allSessions) {
+      return authProvider.instance.signOutAll(user._id)
     }
+
+    return authProvider.instance.signOut(sid)
   },
 })
 
 router.post('/bind-email', {
   middlewares: [
-    requireAuth({
-      sources: ['user'],
+    useAuthGuards({
+      guards: [userGuard],
     }),
-    rateLimit({
+    useRateLimit({
       timeWindow: 10000,
       maxRequests: 20,
     }),
@@ -197,23 +186,23 @@ router.post('/bind-email', {
   schema: {
     body: Type.Object({
       email: Type.String({ format: 'email' }),
-      ticket: Type.String(),
+      token: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { email, ticket } = req.body
+    const { email, token } = req.body
 
-    return authService.instance.bindEmail(user._id, email, ticket)
+    return authProvider.instance.bindEmail(user._id, email, token)
   },
 })
 
 router.post('/bind-phone-number', {
   middlewares: [
-    requireAuth({
-      sources: ['user'],
+    useAuthGuards({
+      guards: [userGuard],
     }),
-    rateLimit({
+    useRateLimit({
       timeWindow: 10000,
       maxRequests: 20,
     }),
@@ -221,23 +210,23 @@ router.post('/bind-phone-number', {
   schema: {
     body: Type.Object({
       phoneNumber: Type.String({ format: 'phone-number' }),
-      ticket: Type.String(),
+      token: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { phoneNumber, ticket } = req.body
+    const { phoneNumber, token } = req.body
 
-    return authService.instance.bindPhoneNumber(user._id, phoneNumber, ticket)
+    return authProvider.instance.bindPhoneNumber(user._id, phoneNumber, token)
   },
 })
 
 router.post('/change-password', {
   middlewares: [
-    requireAuth({
-      sources: ['user'],
+    useAuthGuards({
+      guards: [userGuard],
     }),
-    rateLimit({
+    useRateLimit({
       timeWindow: 10000,
       maxRequests: 10,
     }),
@@ -252,13 +241,13 @@ router.post('/change-password', {
     const { user } = req.state
     const { password, newPassword } = req.body
 
-    return authService.instance.changePassword(user._id, password, newPassword)
+    return authProvider.instance.changePassword(user._id, password, newPassword)
   },
 })
 
 router.post('/reset-password', {
   middlewares: [
-    rateLimit({
+    useRateLimit({
       timeWindow: 10000,
       maxRequests: 10,
     }),
@@ -268,19 +257,19 @@ router.post('/reset-password', {
       type: Type.Literal(['email', 'phoneNumber']),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-      ticket: Type.String(),
+      token: Type.String(),
       password: Type.String(),
     }),
   },
   handler: async req => {
-    const { type, email, phoneNumber, ticket, password } = req.body
+    const { type, email, phoneNumber, token, password } = req.body
 
     if (type === 'email') {
       if (!email) {
         throw new BadRequest('must include [email]')
       }
 
-      return authService.instance.resetPasswordByEmail(email, password, ticket)
+      return authProvider.instance.resetPasswordByEmail(email, password, token)
     }
 
     if (type === 'phoneNumber') {
@@ -288,10 +277,10 @@ router.post('/reset-password', {
         throw new BadRequest('must include [phone]')
       }
 
-      return authService.instance.resetPasswordByPhoneNumber(
+      return authProvider.instance.resetPasswordByPhoneNumber(
         phoneNumber,
         password,
-        ticket,
+        token,
       )
     }
 

@@ -6,9 +6,9 @@ import {
   useStatusCode,
 } from 'atonal'
 import { keyGuard, userGuard } from '../middlewares'
-import { useRoleProvider } from '../providers'
+import { usePermissionProvider } from '../providers'
 
-const roleProvider = useRoleProvider()
+const permissionProvider = usePermissionProvider()
 
 const router = useRouter({
   middlewares: [
@@ -24,15 +24,14 @@ router.post('/', {
   schema: {
     body: Type.Object({
       name: Type.String(),
-      permissions: Type.Array(Type.String()),
       alias: Type.Optional(Type.String()),
       description: Type.Optional(Type.String()),
     }),
   },
   handler: async req => {
-    const { name, permissions, alias, description } = req.body
+    const { name, alias, description } = req.body
 
-    return roleProvider.instance.createRole(name, permissions, {
+    return permissionProvider.instance.createPermission(name, {
       alias,
       description,
     })
@@ -55,7 +54,7 @@ router.get('/', {
       limit: Number,
     })
 
-    return roleProvider.instance.getRoles({
+    return permissionProvider.instance.getPermissions({
       name,
       sortBy,
       orderBy,
@@ -74,7 +73,7 @@ router.get('/:name', {
   handler: async req => {
     const { name } = req.params
 
-    return roleProvider.instance.getRole(name)
+    return permissionProvider.instance.getPermission(name)
   },
 })
 
@@ -85,7 +84,6 @@ router.patch('/:name', {
     }),
     body: Type.Object(
       {
-        permissions: Type.Optional(Type.Array(Type.String())),
         alias: Type.Optional(Type.String()),
         description: Type.Optional(Type.String()),
       },
@@ -95,7 +93,7 @@ router.patch('/:name', {
   handler: async req => {
     const { name } = req.params
 
-    return roleProvider.instance.updateRole(name, req.body)
+    return permissionProvider.instance.updatePermission(name, req.body)
   },
 })
 
@@ -108,7 +106,7 @@ router.delete('/:name', {
   handler: async req => {
     const { name } = req.params
 
-    return roleProvider.instance.deleteRole(name)
+    return permissionProvider.instance.deletePermission(name)
   },
 })
 
