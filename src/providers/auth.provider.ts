@@ -213,10 +213,6 @@ export class AuthProvider {
   private async getUserState(userId: ObjectId) {
     const user = await userProvider.instance.getUser(userId)
 
-    if (!user) {
-      throw new Unauthorized('user is not found')
-    }
-
     if (user.blocked) {
       throw new Unauthorized('user has been blocked')
     }

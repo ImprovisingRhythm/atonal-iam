@@ -1,6 +1,7 @@
 import { makeArray, transform, Type, useAuthGuards, useRouter } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { useConfigs } from '../common/configs'
+import { IAM_PERMISSION } from '../common/constants'
 import { keyGuard, userGuard } from '../middlewares'
 import { useUserProvider } from '../providers'
 
@@ -30,7 +31,7 @@ router.post('/', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(['iam.root', 'iam.createUser'])
+    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.CREATE_USER])
 
     return userProvider.instance.createUser(req.body)
   },
@@ -55,7 +56,7 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(['iam.root', 'iam.getUsers'])
+    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.GET_USERS])
 
     const {
       userId,
@@ -103,9 +104,10 @@ router.get('/:userId', {
       userId: ObjectId.createFromHexString,
     })
 
-    req.guardUserPermission(['iam.root', 'iam.getUsers'], () => {
-      return userId.equals(req.state.user._id)
-    })
+    req.guardUserPermission(
+      [IAM_PERMISSION.ROOT, IAM_PERMISSION.GET_USERS],
+      () => userId.equals(req.state.user._id),
+    )
 
     return userProvider.instance.getUser(userId)
   },
@@ -125,9 +127,10 @@ router.patch('/:userId/profile', {
       userId: ObjectId.createFromHexString,
     })
 
-    req.guardUserPermission(['iam.root', 'iam.updateUsers'], () => {
-      return userId.equals(req.state.user._id)
-    })
+    req.guardUserPermission(
+      [IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS],
+      () => userId.equals(req.state.user._id),
+    )
 
     return userProvider.instance.updateProfile(userId, req.body)
   },
@@ -145,9 +148,10 @@ router.put('/:userId/profile', {
       userId: ObjectId.createFromHexString,
     })
 
-    req.guardUserPermission(['iam.root', 'iam.updateUsers'], () => {
-      return userId.equals(req.state.user._id)
-    })
+    req.guardUserPermission(
+      [IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS],
+      () => userId.equals(req.state.user._id),
+    )
 
     return userProvider.instance.updateFullProfile(userId, req.body)
   },
@@ -163,7 +167,7 @@ router.patch('/:userId/meta', {
     ),
   }),
   handler: async req => {
-    req.guardUserPermission(['iam.root', 'iam.updateUsers'])
+    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
@@ -183,7 +187,7 @@ router.put('/:userId/permissions', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('iam.root')
+    req.guardUserPermission(IAM_PERMISSION.ROOT)
 
     const { permissions } = req.body
     const { userId } = transform(req.params, {
@@ -204,7 +208,7 @@ router.put('/:userId/roles', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('iam.root')
+    req.guardUserPermission(IAM_PERMISSION.ROOT)
 
     const { roles } = req.body
     const { userId } = transform(req.params, {
@@ -222,7 +226,7 @@ router.post('/:userId/block', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('iam.root')
+    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.BLOCK_USERS])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
@@ -239,7 +243,7 @@ router.post('/:userId/unblock', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission('iam.root')
+    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.BLOCK_USERS])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,

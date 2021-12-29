@@ -1,6 +1,7 @@
 import {
   Conflict,
   ensureValues,
+  Forbidden,
   hashPassword,
   NotFound,
   randomString,
@@ -8,6 +9,7 @@ import {
 } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { chain } from 'lodash'
+import { IAM_PERMISSION } from '../common/constants'
 import {
   PermissionModel,
   RoleModel,
@@ -18,8 +20,10 @@ import {
 } from '../models'
 import { desensitizeUser, desensitizeUsers } from '../utils'
 import { AuthProvider } from './auth.provider'
+import { RoleProvider } from './role.provider'
 
 const authProvider = useInstance<AuthProvider>('IAM.provider.auth')
+const roleProvider = useInstance<RoleProvider>('IAM.provider.role')
 
 export class UserProvider {
   async createUser({
@@ -232,8 +236,14 @@ export class UserProvider {
   }
 
   async blockUser(userId: ObjectId) {
-    await authProvider.instance.signOutAll(userId)
+    const permissions = await this.resolvePermissions(userId)
+
+    if (permissions.includes(IAM_PERMISSION.ROOT)) {
+      throw new Forbidden('not allowed to block an user')
+    }
+
     await this.updateUser(userId, { blocked: true })
+    await authProvider.instance.signOutAll(userId)
 
     return { success: true }
   }
@@ -242,6 +252,29 @@ export class UserProvider {
     await this.updateUser(userId, { blocked: false })
 
     return { success: true }
+  }
+
+  private async resolvePermissions(userId: ObjectId) {
+    const user = await this.getUser(userId)
+    const permissions = new Set<string>()
+
+    if (user.permissions) {
+      for (const permission of user.permissions) {
+        permissions.add(permission)
+      }
+    }
+
+    if (user.roles) {
+      const roles = await roleProvider.instance.getRolesByNames(user.roles)
+
+      for (const role of roles) {
+        for (const permission of role.permissions) {
+          permissions.add(permission)
+        }
+      }
+    }
+
+    return Array.from(permissions)
   }
 }
 

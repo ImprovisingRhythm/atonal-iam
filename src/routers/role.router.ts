@@ -5,6 +5,7 @@ import {
   useRouter,
   useStatusCode,
 } from 'atonal'
+import { IAM_PERMISSION } from '../common/constants'
 import { keyGuard, userGuard } from '../middlewares'
 import { useRoleProvider } from '../providers'
 
@@ -15,7 +16,7 @@ const router = useRouter({
     useAuthGuards({
       guards: [keyGuard, userGuard],
     }),
-    async req => req.guardUserPermission('iam.root'),
+    async req => req.guardUserPermission(IAM_PERMISSION.ROOT),
   ],
 })
 
