@@ -1,7 +1,7 @@
 import { hashPassword, NotFound, sha1, Unauthorized, useInstance } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { IAMConfigs } from '../common/configs'
-import { UserState } from '../types/auth'
+import { UserState } from '../types'
 import { CaptchaProvider } from './captcha.provider'
 import { RoleProvider } from './role.provider'
 import { SessionProvider } from './session.provider'

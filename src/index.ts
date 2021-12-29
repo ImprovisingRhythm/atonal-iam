@@ -19,7 +19,7 @@ import {
 } from './providers'
 import router from './routers'
 
-export * from './types/auth'
+export * from './types'
 export * from './common/configs'
 export * from './common/constants'
 export * from './middlewares'
