@@ -74,10 +74,10 @@ atomic-sleep@^1.0.0:
   resolved "https://registry.npmjs.org/atomic-sleep/-/atomic-sleep-1.0.0.tgz#eb85b77a601fc932cfe432c5acd364a9e2c9075b"
   integrity sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==
 
-atonal-db@^1.0.21:
-  version "1.0.21"
-  resolved "https://registry.npmjs.org/atonal-db/-/atonal-db-1.0.21.tgz#e520722f4df822bad457bd3a6324691ed1a2c364"
-  integrity sha512-iFWVyeK/8CR5q6WbNnvB4WE0XYp5z468UL0ECryLS3cShRWL8OMnTfG+fC3appEbJcn0IrW4tljm26TjShh3Fw==
+atonal-db@^1.0.27:
+  version "1.0.27"
+  resolved "https://registry.npmjs.org/atonal-db/-/atonal-db-1.0.27.tgz#2be776f2495298feb721383d5a6428b33b2e237a"
+  integrity sha512-0cFFXKtJg+01I+GPzV0PQz6DxpYnv/iPxBUvKMbo76DL9E07T8le0cyc4r+AIZutJcCbUynGJiYkr/0SJBFThQ==
   dependencies:
     "@types/ioredis" "^4.28.2"
     ioredis "^4.28.2"
@@ -85,10 +85,10 @@ atonal-db@^1.0.21:
     mongodb "^4.2.1"
     ms "^2.1.3"
 
-atonal@^1.0.31:
-  version "1.0.31"
-  resolved "https://registry.npmjs.org/atonal/-/atonal-1.0.31.tgz#ce28aae979acf9ecc9426f0a0b4e4a00b3a18593"
-  integrity sha512-YL60e2DtTh/of3cRWBxwN+iVOTaVGV44smZpi26oHEmlhoa1/dhQ7iQrDTOy8xmPeRkLjjYGEzH8cH2AN2/TxA==
+atonal@^1.0.33:
+  version "1.0.33"
+  resolved "https://registry.npmjs.org/atonal/-/atonal-1.0.33.tgz#6cbb577c686607ae554c5b80a48bbde3c20eb79d"
+  integrity sha512-TJ27GiilMjc/UwT6LGLq5HI8BXbgbqEho8m++I1YPYg/T+8OHaMsFVE+t4VNYjB8PFY6wboo2NLRjFkxeC63KA==
   dependencies:
     fastify "^3.25.1"
     fastify-cookie "^5.4.0"

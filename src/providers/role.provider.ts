@@ -1,4 +1,5 @@
 import { Conflict, ensureValues, NotFound, useInstance } from 'atonal'
+import { makeStartsWithRegExp } from 'atonal-db'
 import {
   PermissionModel,
   Role,
@@ -63,7 +64,10 @@ export class RoleProvider {
     skip?: number
     limit?: number
   }) {
-    const filter = ensureValues({ name })
+    const filter = ensureValues({
+      ...(name && { name: makeStartsWithRegExp(name, 'i') }),
+    })
+
     const count = await RoleModel.countDocuments(filter)
     const results = await RoleModel.find(filter)
       .sort({ [sortBy]: orderBy === 'asc' ? 1 : -1 })
