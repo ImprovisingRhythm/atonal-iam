@@ -3,8 +3,10 @@ import 'atonal'
 declare module 'fastify' {
   interface FastifyRequest {
     guardUserPermission(
+      this: FastifyRequest,
       permissions: string | string[],
       except?: () => boolean,
-    ): void
+      callback?: (userPermissions: string[]) => void,
+    ): string[]
   }
 }

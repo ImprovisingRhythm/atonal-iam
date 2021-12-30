@@ -1,4 +1,4 @@
-import { hashPassword, NotFound, sha1, Unauthorized, useInstance } from 'atonal'
+import { hashPassword, sha1, Unauthorized, useInstance } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { IAMConfigs } from '../common/configs'
 import { UserState } from '../types'
@@ -180,7 +180,7 @@ export class AuthProvider {
     const user = await userProvider.instance.getRawUserBy({ email })
 
     if (!user) {
-      throw new NotFound('user is not found')
+      throw new Unauthorized('invalid credentials')
     }
 
     await userProvider.instance.updateUser(user._id, {
@@ -200,7 +200,7 @@ export class AuthProvider {
     const user = await userProvider.instance.getRawUserBy({ phoneNumber })
 
     if (!user) {
-      throw new NotFound('user is not found')
+      throw new Unauthorized('invalid credentials')
     }
 
     await userProvider.instance.updateUser(user._id, {

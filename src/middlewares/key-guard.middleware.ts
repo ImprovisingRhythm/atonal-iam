@@ -13,4 +13,7 @@ export const keyGuard = useMiddleware(async req => {
   ) {
     throw new Unauthorized('invalid accessKey or secretKey')
   }
+
+  req.state.bypassRateLimit = true
+  req.state.authMethod = 'key'
 })

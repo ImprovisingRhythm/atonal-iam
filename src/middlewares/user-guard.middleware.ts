@@ -11,6 +11,7 @@ export const userGuard = useMiddleware(async req => {
     const { sid, user } = await authProvider.instance.getSessionByToken(token)
 
     req.state.clientId = user._id.toHexString()
+    req.state.authMethod = 'user'
     req.state.sid = sid
     req.state.user = user
   } else {
