@@ -6,8 +6,7 @@ export const userPermissionPlugin = usePlugin(
       'guardUserPermission',
       function (
         permissions: string | string[],
-        except: () => boolean = () => false,
-        callback?: (userPermissions: string[]) => void,
+        except: () => boolean | Promise<boolean> = () => false,
       ) {
         const { authMethod, user } = this.state
 
@@ -23,9 +22,32 @@ export const userPermissionPlugin = usePlugin(
           if (!hasPermission && !except()) {
             throw new Forbidden()
           }
-
-          callback?.(user.permissions)
         }
+      },
+    )
+
+    instance.decorateRequest(
+      'hasUserPermission',
+      function (permissions: string | string[]) {
+        const { authMethod, user } = this.state
+
+        if (authMethod !== 'user' && authMethod !== 'key') {
+          return false
+        }
+
+        if (authMethod === 'user') {
+          const hasPermission = Array.isArray(permissions)
+            ? user.permissions.some(item => permissions.includes(item))
+            : user.permissions.includes(permissions)
+
+          if (hasPermission) {
+            return true
+          } else {
+            return false
+          }
+        }
+
+        return true
       },
     )
 
