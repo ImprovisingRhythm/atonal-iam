@@ -6,6 +6,7 @@ export const IAM_PERMISSION = {
   GET_USERS: 'iam.getUsers',
   UPDATE_USERS: 'iam.updateUsers',
   BLOCK_USERS: 'iam.blockUsers',
+  SENSITIVE_ACCESS: 'iam.sensitiveAccess',
 }
 
 export const IAM_BUILT_IN_PERMISSIONS: SideloadablePermission[] = [
@@ -29,5 +30,9 @@ export const IAM_BUILT_IN_PERMISSIONS: SideloadablePermission[] = [
   {
     name: IAM_PERMISSION.BLOCK_USERS,
     description: 'Allow to block any users',
+  },
+  {
+    name: IAM_PERMISSION.SENSITIVE_ACCESS,
+    description: 'Allow to access sensitive user data',
   },
 ]

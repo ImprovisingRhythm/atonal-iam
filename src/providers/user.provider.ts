@@ -64,31 +64,34 @@ export class UserProvider {
     }
   }
 
-  async getUsers({
-    userId,
-    userIds,
-    role,
-    permission,
-    username,
-    email,
-    phoneNumber,
-    sortBy = 'createdAt',
-    orderBy = 'asc',
-    skip = 0,
-    limit = 20,
-  }: {
-    userId?: ObjectId
-    userIds?: ObjectId[]
-    role?: string
-    permission?: string
-    username?: string
-    email?: string
-    phoneNumber?: string
-    sortBy?: '_id' | 'createdAt' | 'updatedAt'
-    orderBy?: 'asc' | 'desc'
-    skip?: number
-    limit?: number
-  }) {
+  async getUsers(
+    {
+      userId,
+      userIds,
+      role,
+      permission,
+      username,
+      email,
+      phoneNumber,
+      sortBy = 'createdAt',
+      orderBy = 'asc',
+      skip = 0,
+      limit = 20,
+    }: {
+      userId?: ObjectId
+      userIds?: ObjectId[]
+      role?: string
+      permission?: string
+      username?: string
+      email?: string
+      phoneNumber?: string
+      sortBy?: '_id' | 'createdAt' | 'updatedAt'
+      orderBy?: 'asc' | 'desc'
+      skip?: number
+      limit?: number
+    },
+    { sensitive = false }: { sensitive?: boolean } = {},
+  ) {
     const filter = ensureValues({
       _id: userId,
       ...(userIds && { _id: { $in: userIds } }),
@@ -108,18 +111,21 @@ export class UserProvider {
 
     return {
       count,
-      results: desensitizeUsers(results),
+      results: desensitizeUsers(results, sensitive ? 'mask' : 'delete'),
     }
   }
 
-  async getUser(userId: ObjectId) {
+  async getUser(
+    userId: ObjectId,
+    { sensitive = false }: { sensitive?: boolean } = {},
+  ) {
     const user = await UserModel.findById(userId)
 
     if (!user) {
       throw new NotFound('user is not found')
     }
 
-    return desensitizeUser(user)
+    return desensitizeUser(user, sensitive ? 'mask' : 'delete')
   }
 
   async getRawUserBy(filter: {
@@ -276,7 +282,17 @@ export class UserProvider {
   }
 
   private async resolvePermissions(userId: ObjectId) {
-    const user = await this.getUser(userId)
+    const user = await UserModel.findById(userId, {
+      projection: {
+        roles: 1,
+        permissions: 1,
+      },
+    })
+
+    if (!user) {
+      throw new NotFound('user is not found')
+    }
+
     const permissions = new Set<string>()
 
     if (user.permissions) {

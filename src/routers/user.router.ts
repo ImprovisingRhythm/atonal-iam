@@ -77,19 +77,27 @@ router.get('/', {
       limit: Number,
     })
 
-    const { count, results } = await userProvider.instance.getUsers({
-      userId,
-      userIds,
-      role,
-      permission,
-      username,
-      email,
-      phoneNumber,
-      sortBy,
-      orderBy,
-      skip,
-      limit,
-    })
+    const { count, results } = await userProvider.instance.getUsers(
+      {
+        userId,
+        userIds,
+        role,
+        permission,
+        username,
+        email,
+        phoneNumber,
+        sortBy,
+        orderBy,
+        skip,
+        limit,
+      },
+      {
+        sensitive: req.hasUserPermission([
+          IAM_PERMISSION.ROOT,
+          IAM_PERMISSION.SENSITIVE_ACCESS,
+        ]),
+      },
+    )
 
     const { getUser } = configs.instance.overrides ?? {}
 
@@ -116,7 +124,13 @@ router.get('/:userId', {
       () => userId.equals(req.state.user._id),
     )
 
-    const user = await userProvider.instance.getUser(userId)
+    const user = await userProvider.instance.getUser(userId, {
+      sensitive:
+        req.hasUserPermission([
+          IAM_PERMISSION.ROOT,
+          IAM_PERMISSION.SENSITIVE_ACCESS,
+        ]) || userId.equals(req.state.user._id),
+    })
 
     const { getUser } = configs.instance.overrides ?? {}
 
@@ -206,6 +220,10 @@ router.patch('/:userId/national-id', {
     })
 
     req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS])
+    req.guardUserPermission([
+      IAM_PERMISSION.ROOT,
+      IAM_PERMISSION.SENSITIVE_ACCESS,
+    ])
 
     return userProvider.instance.updateNationalId(userId, req.body)
   },
