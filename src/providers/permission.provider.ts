@@ -18,11 +18,11 @@ export class PermissionProvider {
       const created = await PermissionModel.findOneAndUpdate(
         { name },
         {
-          $set: {
+          $set: ensureValues({
             alias,
             description,
             updatedAt: now,
-          },
+          }),
           $setOnInsert: {
             createdAt: now,
           },

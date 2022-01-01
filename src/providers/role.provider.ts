@@ -18,12 +18,12 @@ export class RoleProvider {
       const created = await RoleModel.findOneAndUpdate(
         { name },
         {
-          $set: {
+          $set: ensureValues({
             permissions,
             alias,
             description,
             updatedAt: now,
-          },
+          }),
           $setOnInsert: {
             createdAt: now,
           },
