@@ -10,19 +10,31 @@ import {
 
 export class RoleProvider {
   async sideloadRoles(roles: SideloadableRole[]) {
+    const now = new Date()
+
     for (const role of roles) {
       const { name, permissions, alias, description } = role
 
-      try {
-        const created = await this.createRole(name, permissions, {
-          alias,
-          description,
-        })
+      const created = await RoleModel.findOneAndUpdate(
+        { name },
+        {
+          $set: {
+            permissions,
+            alias,
+            description,
+          },
+          $setOnInsert: {
+            createdAt: now,
+            updatedAt: now,
+          },
+        },
+        {
+          upsert: true,
+          returnDocument: 'after',
+        },
+      )
 
-        console.log(created)
-      } catch {
-        // ...
-      }
+      console.log(created)
     }
   }
 

@@ -10,19 +10,30 @@ import {
 
 export class PermissionProvider {
   async sideloadPermissions(permissions: SideloadablePermission[]) {
+    const now = new Date()
+
     for (const permission of permissions) {
       const { name, alias, description } = permission
 
-      try {
-        const created = await this.createPermission(name, {
-          alias,
-          description,
-        })
+      const created = await PermissionModel.findOneAndUpdate(
+        { name },
+        {
+          $set: {
+            alias,
+            description,
+          },
+          $setOnInsert: {
+            createdAt: now,
+            updatedAt: now,
+          },
+        },
+        {
+          upsert: true,
+          returnDocument: 'after',
+        },
+      )
 
-        console.log(created)
-      } catch {
-        // ...
-      }
+      console.log(created)
     }
   }
 
