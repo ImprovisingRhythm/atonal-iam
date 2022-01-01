@@ -21,13 +21,14 @@ export class PermissionProvider {
           $set: ensureValues({
             alias,
             description,
-            updatedAt: now,
           }),
           $setOnInsert: {
             createdAt: now,
+            updatedAt: now,
           },
         },
         {
+          timestamps: false,
           upsert: true,
           returnDocument: 'after',
         },

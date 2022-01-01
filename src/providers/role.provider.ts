@@ -22,13 +22,14 @@ export class RoleProvider {
             permissions,
             alias,
             description,
-            updatedAt: now,
           }),
           $setOnInsert: {
             createdAt: now,
+            updatedAt: now,
           },
         },
         {
+          timestamps: false,
           upsert: true,
           returnDocument: 'after',
         },
