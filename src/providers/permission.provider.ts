@@ -15,7 +15,7 @@ export class PermissionProvider {
     for (const permission of permissions) {
       const { name, alias, description } = permission
 
-      const created = await PermissionModel.findOneAndUpdate(
+      await PermissionModel.findOneAndUpdate(
         { name },
         {
           $set: ensureValues({
@@ -32,8 +32,6 @@ export class PermissionProvider {
           returnDocument: 'after',
         },
       )
-
-      console.log(created)
     }
   }
 

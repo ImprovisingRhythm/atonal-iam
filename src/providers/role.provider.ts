@@ -15,7 +15,7 @@ export class RoleProvider {
     for (const role of roles) {
       const { name, permissions, alias, description } = role
 
-      const created = await RoleModel.findOneAndUpdate(
+      await RoleModel.findOneAndUpdate(
         { name },
         {
           $set: ensureValues({
@@ -33,8 +33,6 @@ export class RoleProvider {
           returnDocument: 'after',
         },
       )
-
-      console.log(created)
     }
   }
 
