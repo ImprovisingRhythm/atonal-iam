@@ -1,12 +1,7 @@
 import { DesensitizedUser, User } from '../models'
 import { maskEmail, maskIdCardNumber, maskPhoneNumber } from './mask-string'
 
-export type DesensitizeUserMode = 'remove' | 'mask'
-
-export const desensitizeUser = (
-  user: User,
-  mode: DesensitizeUserMode = 'mask',
-) => {
+export const desensitizeUser = (user: User) => {
   // @ts-ignore
   delete user.salt
 
@@ -15,44 +10,29 @@ export const desensitizeUser = (
 
   // Mask id card number
   if (user.nationalId) {
-    if (mode === 'mask') {
-      const { idCardNumber } = user.nationalId
+    const { idCardNumber } = user.nationalId
 
-      if (idCardNumber) {
-        user.nationalId.idCardNumber = maskIdCardNumber(idCardNumber)
-      }
-    } else {
-      delete user.nationalId
+    if (idCardNumber) {
+      user.nationalId.idCardNumber = maskIdCardNumber(idCardNumber)
     }
   }
 
   // Mask email address
   if (user.email) {
-    if (mode === 'mask') {
-      user.email = maskEmail(user.email)
-    } else {
-      delete user.email
-    }
+    user.email = maskEmail(user.email)
   }
 
   // Mask phone number
   if (user.phoneNumber) {
-    if (mode === 'mask') {
-      user.phoneNumber = maskPhoneNumber(user.phoneNumber)
-    } else {
-      delete user.phoneNumber
-    }
+    user.phoneNumber = maskPhoneNumber(user.phoneNumber)
   }
 
   return user as DesensitizedUser
 }
 
-export const desensitizeUsers = (
-  users: User[],
-  mode: DesensitizeUserMode = 'mask',
-) => {
+export const desensitizeUsers = (users: User[]) => {
   for (const user of users) {
-    desensitizeUser(user, mode)
+    desensitizeUser(user)
   }
 
   return users as DesensitizedUser[]

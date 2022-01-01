@@ -16,6 +16,7 @@ import {
   User,
   UserMeta,
   UserModel,
+  UserNationalId,
   UserProfile,
 } from '../models'
 import { desensitizeUser, desensitizeUsers } from '../utils'
@@ -197,6 +198,26 @@ export class UserProvider {
     }
 
     return user.meta ?? {}
+  }
+
+  async updateNationalId(userId: ObjectId, partial: Partial<UserNationalId>) {
+    const $set = ensureValues(
+      chain(partial)
+        .mapKeys((_, key) => `nationalId.${key}`)
+        .value(),
+    )
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set },
+      { returnDocument: 'after' },
+    )
+
+    if (!user) {
+      throw new NotFound('user is not found')
+    }
+
+    return user.nationalId ?? {}
   }
 
   async updatePermissions(userId: ObjectId, permissions: string[]) {

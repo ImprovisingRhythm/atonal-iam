@@ -1,5 +1,6 @@
-import { TObject, useInstance } from 'atonal'
+import { Request, TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
+import { DesensitizedUser } from '../models'
 
 export interface IAMConfigs {
   databases: {
@@ -41,6 +42,12 @@ export interface IAMConfigs {
       len: number
       expiresIn: string
     }
+  }
+  overrides?: {
+    getUser?: (
+      req: Request,
+      user: DesensitizedUser,
+    ) => Promise<DesensitizedUser> | DesensitizedUser
   }
 }
 

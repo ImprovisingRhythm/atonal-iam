@@ -77,7 +77,7 @@ router.get('/', {
       limit: Number,
     })
 
-    return userProvider.instance.getUsers({
+    const { count, results } = await userProvider.instance.getUsers({
       userId,
       userIds,
       role,
@@ -90,6 +90,13 @@ router.get('/', {
       skip,
       limit,
     })
+
+    const { getUser } = configs.instance.overrides ?? {}
+
+    return {
+      count,
+      results: getUser ? results.map(user => getUser(req, user)) : results,
+    }
   },
 })
 
@@ -109,7 +116,11 @@ router.get('/:userId', {
       () => userId.equals(req.state.user._id),
     )
 
-    return userProvider.instance.getUser(userId)
+    const user = await userProvider.instance.getUser(userId)
+
+    const { getUser } = configs.instance.overrides ?? {}
+
+    return getUser ? getUser(req, user) : user
   },
 })
 
@@ -174,6 +185,29 @@ router.patch('/:userId/meta', {
     })
 
     return userProvider.instance.updateMeta(userId, req.body)
+  },
+})
+
+router.patch('/:userId/national-id', {
+  schema: () => ({
+    params: Type.Object({
+      userId: Type.String({ format: 'object-id' }),
+    }),
+    body: Type.Object({
+      idCardType: Type.Optional(Type.String()),
+      idCardNumber: Type.Optional(Type.String()),
+      name: Type.Optional(Type.String()),
+      verified: Type.Optional(Type.Boolean()),
+    }),
+  }),
+  handler: async req => {
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
+
+    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS])
+
+    return userProvider.instance.updateNationalId(userId, req.body)
   },
 })
 
