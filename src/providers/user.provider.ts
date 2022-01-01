@@ -9,10 +9,9 @@ import {
 } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { chain } from 'lodash'
+import { useConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
 import {
-  PermissionModel,
-  RoleModel,
   User,
   UserMeta,
   UserModel,
@@ -21,13 +20,19 @@ import {
 } from '../models'
 import { desensitizeUser, desensitizeUsers } from '../utils'
 import { AuthProvider } from './auth.provider'
+import { PermissionProvider } from './permission.provider'
 import { RoleProvider } from './role.provider'
 
+const configs = useConfigs()
+
 const authProvider = useInstance<AuthProvider>('IAM.provider.auth')
+const pmsProvider = useInstance<PermissionProvider>('IAM.provider.permission')
 const roleProvider = useInstance<RoleProvider>('IAM.provider.role')
 
 export class UserProvider {
   async createUser({
+    roles,
+    permissions,
     username,
     email,
     emailVerified,
@@ -35,6 +40,8 @@ export class UserProvider {
     phoneNumberVerified,
     password,
   }: {
+    roles?: string[]
+    permissions?: string[]
     username?: string
     email?: string
     emailVerified?: boolean
@@ -42,12 +49,23 @@ export class UserProvider {
     phoneNumberVerified?: boolean
     password?: string
   }) {
+    if (permissions) {
+      await pmsProvider.instance.guardExistingPermissions(permissions)
+    }
+
+    if (roles) {
+      await roleProvider.instance.guardExistingRoles(roles)
+    }
+
     const salt = randomString(8)
     const pwdHash = password ? hashPassword(password + salt) : undefined
 
     try {
       const user = await UserModel.create(
         ensureValues({
+          ...configs.instance.defaults?.user,
+          roles,
+          permissions,
           username,
           email,
           emailVerified,
@@ -227,15 +245,7 @@ export class UserProvider {
   }
 
   async updatePermissions(userId: ObjectId, permissions: string[]) {
-    const count = await PermissionModel.countDocuments({
-      name: {
-        $in: permissions,
-      },
-    })
-
-    if (count !== permissions.length) {
-      throw new NotFound('some permissions are not found')
-    }
+    await pmsProvider.instance.guardExistingPermissions(permissions)
 
     const user = await this.updateUser(userId, { permissions })
 
@@ -245,15 +255,7 @@ export class UserProvider {
   }
 
   async updateRoles(userId: ObjectId, roles: string[]) {
-    const count = await RoleModel.countDocuments({
-      name: {
-        $in: roles,
-      },
-    })
-
-    if (count !== roles.length) {
-      throw new NotFound('some roles are not found')
-    }
+    await roleProvider.instance.guardExistingRoles(roles)
 
     const user = await this.updateUser(userId, { roles })
 

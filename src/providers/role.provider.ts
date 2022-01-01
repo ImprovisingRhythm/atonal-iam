@@ -140,6 +140,20 @@ export class RoleProvider {
 
     return { success: true }
   }
+
+  async guardExistingRoles(roles: string[]) {
+    if (roles.length > 0) {
+      const count = await RoleModel.countDocuments({
+        name: {
+          $in: roles,
+        },
+      })
+
+      if (count !== roles.length) {
+        throw new NotFound('some roles are not found')
+      }
+    }
+  }
 }
 
 export const useRoleProvider = () =>

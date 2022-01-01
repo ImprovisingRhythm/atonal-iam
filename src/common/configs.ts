@@ -1,16 +1,21 @@
-import { Request, TObject, useInstance } from 'atonal'
+import { TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
-import { DesensitizedUser } from '../models'
 
 export interface IAMConfigs {
   databases: {
     mongodb: MongoConfig
     redis: RedisConfig
   }
-  schemas: {
+  schemas?: {
     user?: {
       profile?: TObject<{}>
       meta?: TObject<{}>
+    }
+  }
+  defaults?: {
+    user?: {
+      roles?: string[]
+      permissions?: string[]
     }
   }
   auth: {
@@ -42,12 +47,6 @@ export interface IAMConfigs {
       len: number
       expiresIn: string
     }
-  }
-  overrides?: {
-    getUser?: (
-      req: Request,
-      user: DesensitizedUser,
-    ) => Promise<DesensitizedUser> | DesensitizedUser
   }
 }
 

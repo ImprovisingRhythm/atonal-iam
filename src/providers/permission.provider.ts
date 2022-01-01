@@ -131,6 +131,20 @@ export class PermissionProvider {
 
     return { success: true }
   }
+
+  async guardExistingPermissions(permissions: string[]) {
+    if (permissions.length > 0) {
+      const count = await PermissionModel.countDocuments({
+        name: {
+          $in: permissions,
+        },
+      })
+
+      if (count !== permissions.length) {
+        throw new NotFound('some permissions are not found')
+      }
+    }
+  }
 }
 
 export const usePermissionProvider = () =>

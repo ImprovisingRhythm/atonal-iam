@@ -77,7 +77,7 @@ router.get('/', {
       limit: Number,
     })
 
-    const { count, results } = await userProvider.instance.getUsers(
+    return userProvider.instance.getUsers(
       {
         userId,
         userIds,
@@ -98,13 +98,6 @@ router.get('/', {
         ]),
       },
     )
-
-    const { getUser } = configs.instance.overrides ?? {}
-
-    return {
-      count,
-      results: getUser ? results.map(user => getUser(req, user)) : results,
-    }
   },
 })
 
@@ -115,26 +108,23 @@ router.get('/:userId', {
     }),
   },
   handler: async req => {
+    const { user } = req.state
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
     })
 
     req.guardUserPermission(
       [IAM_PERMISSION.ROOT, IAM_PERMISSION.GET_USERS],
-      () => userId.equals(req.state.user._id),
+      () => userId.equals(user._id),
     )
 
-    const user = await userProvider.instance.getUser(userId, {
+    return userProvider.instance.getUser(userId, {
       sensitive:
         req.hasUserPermission([
           IAM_PERMISSION.ROOT,
           IAM_PERMISSION.SENSITIVE_ACCESS,
-        ]) || userId.equals(req.state.user._id),
+        ]) || userId.equals(user._id),
     })
-
-    const { getUser } = configs.instance.overrides ?? {}
-
-    return getUser ? getUser(req, user) : user
   },
 })
 
@@ -144,7 +134,7 @@ router.patch('/:userId/profile', {
       userId: Type.String({ format: 'object-id' }),
     }),
     body: Type.Partial(
-      configs.instance.schemas.user?.profile ?? DefaultUserProfileSchema,
+      configs.instance.schemas?.user?.profile ?? DefaultUserProfileSchema,
     ),
   }),
   handler: async req => {
@@ -166,7 +156,7 @@ router.put('/:userId/profile', {
     params: Type.Object({
       userId: Type.String({ format: 'object-id' }),
     }),
-    body: configs.instance.schemas.user?.profile ?? DefaultUserProfileSchema,
+    body: configs.instance.schemas?.user?.profile ?? DefaultUserProfileSchema,
   }),
   handler: async req => {
     const { userId } = transform(req.params, {
@@ -188,7 +178,7 @@ router.patch('/:userId/meta', {
       userId: Type.String({ format: 'object-id' }),
     }),
     body: Type.Partial(
-      configs.instance.schemas.user?.meta ?? DefaultUserMetaSchema,
+      configs.instance.schemas?.user?.meta ?? DefaultUserMetaSchema,
     ),
   }),
   handler: async req => {
