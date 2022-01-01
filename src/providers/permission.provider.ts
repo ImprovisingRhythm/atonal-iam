@@ -21,10 +21,10 @@ export class PermissionProvider {
           $set: {
             alias,
             description,
+            updatedAt: now,
           },
           $setOnInsert: {
             createdAt: now,
-            updatedAt: now,
           },
         },
         {
