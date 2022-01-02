@@ -1,6 +1,6 @@
 import { BaseModel, Timestamps, useCollection } from 'atonal-db'
 
-export type SideloadableRole = Pick<
+export type BuiltInRole = Pick<
   Role,
   'name' | 'permissions' | 'alias' | 'description'
 >

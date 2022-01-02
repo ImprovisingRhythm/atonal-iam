@@ -1,39 +1,58 @@
 import { Conflict, ensureValues, NotFound, useInstance } from 'atonal'
 import { makeStartsWithRegExp } from 'atonal-db'
+import { isEqual } from 'lodash'
 import {
+  BuiltInPermission,
   Permission,
   PermissionModel,
   RoleModel,
-  SideloadablePermission,
   UserModel,
 } from '../models'
 
 export class PermissionProvider {
-  async sideloadPermissions(permissions: SideloadablePermission[]) {
-    const now = new Date()
+  async loadPermissions(permissions: BuiltInPermission[]) {
+    const created: Permission[] = []
+    const updated: Permission[] = []
 
     for (const permission of permissions) {
       const { name, alias, description } = permission
 
-      await PermissionModel.findOneAndUpdate(
-        { name },
-        {
-          $set: ensureValues({
+      const existing = await PermissionModel.findOne({ name })
+
+      if (existing) {
+        if (
+          !isEqual(existing.alias, alias) ||
+          !isEqual(existing.description, description)
+        ) {
+          const item = await PermissionModel.findOneAndUpdate(
+            { name },
+            {
+              $set: ensureValues({
+                alias,
+                description,
+              }),
+            },
+            { returnDocument: 'after' },
+          )
+
+          if (item) {
+            updated.push(item)
+          }
+        }
+      } else {
+        const item = await PermissionModel.create(
+          ensureValues({
+            name,
             alias,
             description,
           }),
-          $setOnInsert: {
-            createdAt: now,
-            updatedAt: now,
-          },
-        },
-        {
-          timestamps: false,
-          upsert: true,
-          returnDocument: 'after',
-        },
-      )
+        )
+
+        created.push(item)
+      }
     }
+
+    return { created, updated }
   }
 
   async createPermission(

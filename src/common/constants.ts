@@ -1,7 +1,7 @@
-import { SideloadablePermission } from '../models'
+import { BuiltInPermission } from '../models'
 
 export const IAM_PERMISSION = {
-  ROOT: 'iam.root',
+  ADMIN: 'iam.admin',
   CREATE_USER: 'iam.createUser',
   GET_USERS: 'iam.getUsers',
   UPDATE_USERS: 'iam.updateUsers',
@@ -9,10 +9,10 @@ export const IAM_PERMISSION = {
   SENSITIVE_ACCESS: 'iam.sensitiveAccess',
 }
 
-export const IAM_BUILT_IN_PERMISSIONS: SideloadablePermission[] = [
+export const IAM_BUILT_IN_PERMISSIONS: BuiltInPermission[] = [
   // User
   {
-    name: IAM_PERMISSION.ROOT,
+    name: IAM_PERMISSION.ADMIN,
     description: 'Allow to manage permissions, roles and users',
   },
   {

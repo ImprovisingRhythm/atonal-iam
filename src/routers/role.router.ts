@@ -16,7 +16,7 @@ const router = useRouter({
     useAuthGuards({
       guards: [keyGuard, userGuard],
     }),
-    async req => req.guardUserPermission(IAM_PERMISSION.ROOT),
+    async req => req.guardUserPermission(IAM_PERMISSION.ADMIN),
   ],
 })
 

@@ -12,7 +12,7 @@ const router = useRouter({
   ],
 })
 
-router.put('/stores/:key', {
+router.put('/objects/:key', {
   schema: {
     params: Type.Object({
       key: Type.String(),
@@ -25,11 +25,11 @@ router.put('/stores/:key', {
     const { key } = req.params
     const { value } = req.body
 
-    return sessionProvider.instance.setStore(key, value)
+    return sessionProvider.instance.setObject(key, value)
   },
 })
 
-router.get('/stores/:key', {
+router.get('/objects/:key', {
   schema: {
     params: Type.Object({
       key: Type.String(),
@@ -37,13 +37,13 @@ router.get('/stores/:key', {
   },
   handler: async req => {
     const { key } = req.params
-    const value = await sessionProvider.instance.getStore(key)
+    const value = await sessionProvider.instance.getObject(key)
 
     return { value }
   },
 })
 
-router.delete('/stores/:key', {
+router.delete('/objects/:key', {
   schema: {
     params: Type.Object({
       key: Type.String(),
@@ -52,7 +52,7 @@ router.delete('/stores/:key', {
   handler: async req => {
     const { key } = req.params
 
-    return sessionProvider.instance.deleteStore(key)
+    return sessionProvider.instance.deleteObject(key)
   },
 })
 
@@ -78,7 +78,7 @@ router.get('/sids/:sid', {
   },
   handler: async req => {
     const { sid } = req.params
-    const value = await sessionProvider.instance.getStoreBySID(sid)
+    const value = await sessionProvider.instance.getObjectBySID(sid)
 
     return { value }
   },

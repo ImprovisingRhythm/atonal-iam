@@ -267,8 +267,8 @@ export class UserProvider {
   async blockUser(userId: ObjectId) {
     const permissions = await this.resolvePermissions(userId)
 
-    if (permissions.includes(IAM_PERMISSION.ROOT)) {
-      throw new Forbidden('not allowed to block an user')
+    if (permissions.includes(IAM_PERMISSION.ADMIN)) {
+      throw new Forbidden('not allowed to block an admin user')
     }
 
     await this.updateUser(userId, { blocked: true })

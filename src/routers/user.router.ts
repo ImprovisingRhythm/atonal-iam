@@ -31,7 +31,7 @@ router.post('/', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.CREATE_USER])
+    req.guardUserPermission([IAM_PERMISSION.ADMIN, IAM_PERMISSION.CREATE_USER])
 
     return userProvider.instance.createUser(req.body)
   },
@@ -56,7 +56,7 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.GET_USERS])
+    req.guardUserPermission([IAM_PERMISSION.ADMIN, IAM_PERMISSION.GET_USERS])
 
     const {
       userId,
@@ -93,7 +93,7 @@ router.get('/', {
       },
       {
         sensitive: req.hasUserPermission([
-          IAM_PERMISSION.ROOT,
+          IAM_PERMISSION.ADMIN,
           IAM_PERMISSION.SENSITIVE_ACCESS,
         ]),
       },
@@ -114,14 +114,14 @@ router.get('/:userId', {
     })
 
     req.guardUserPermission(
-      [IAM_PERMISSION.ROOT, IAM_PERMISSION.GET_USERS],
+      [IAM_PERMISSION.ADMIN, IAM_PERMISSION.GET_USERS],
       () => userId.equals(user._id),
     )
 
     return userProvider.instance.getUser(userId, {
       sensitive:
         req.hasUserPermission([
-          IAM_PERMISSION.ROOT,
+          IAM_PERMISSION.ADMIN,
           IAM_PERMISSION.SENSITIVE_ACCESS,
         ]) || userId.equals(user._id),
     })
@@ -143,7 +143,7 @@ router.patch('/:userId/profile', {
     })
 
     req.guardUserPermission(
-      [IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS],
+      [IAM_PERMISSION.ADMIN, IAM_PERMISSION.UPDATE_USERS],
       () => userId.equals(req.state.user._id),
     )
 
@@ -164,7 +164,7 @@ router.put('/:userId/profile', {
     })
 
     req.guardUserPermission(
-      [IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS],
+      [IAM_PERMISSION.ADMIN, IAM_PERMISSION.UPDATE_USERS],
       () => userId.equals(req.state.user._id),
     )
 
@@ -182,7 +182,7 @@ router.patch('/:userId/meta', {
     ),
   }),
   handler: async req => {
-    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS])
+    req.guardUserPermission([IAM_PERMISSION.ADMIN, IAM_PERMISSION.UPDATE_USERS])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
@@ -209,9 +209,9 @@ router.patch('/:userId/national-id', {
       userId: ObjectId.createFromHexString,
     })
 
-    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.UPDATE_USERS])
+    req.guardUserPermission([IAM_PERMISSION.ADMIN, IAM_PERMISSION.UPDATE_USERS])
     req.guardUserPermission([
-      IAM_PERMISSION.ROOT,
+      IAM_PERMISSION.ADMIN,
       IAM_PERMISSION.SENSITIVE_ACCESS,
     ])
 
@@ -229,7 +229,7 @@ router.put('/:userId/permissions', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(IAM_PERMISSION.ROOT)
+    req.guardUserPermission(IAM_PERMISSION.ADMIN)
 
     const { permissions } = req.body
     const { userId } = transform(req.params, {
@@ -250,7 +250,7 @@ router.put('/:userId/roles', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission(IAM_PERMISSION.ROOT)
+    req.guardUserPermission(IAM_PERMISSION.ADMIN)
 
     const { roles } = req.body
     const { userId } = transform(req.params, {
@@ -268,7 +268,7 @@ router.post('/:userId/block', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.BLOCK_USERS])
+    req.guardUserPermission([IAM_PERMISSION.ADMIN, IAM_PERMISSION.BLOCK_USERS])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,
@@ -285,7 +285,7 @@ router.post('/:userId/unblock', {
     }),
   },
   handler: async req => {
-    req.guardUserPermission([IAM_PERMISSION.ROOT, IAM_PERMISSION.BLOCK_USERS])
+    req.guardUserPermission([IAM_PERMISSION.ADMIN, IAM_PERMISSION.BLOCK_USERS])
 
     const { userId } = transform(req.params, {
       userId: ObjectId.createFromHexString,

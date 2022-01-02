@@ -1,40 +1,61 @@
 import { Conflict, ensureValues, NotFound, useInstance } from 'atonal'
 import { makeStartsWithRegExp } from 'atonal-db'
+import { isEqual } from 'lodash'
 import {
+  BuiltInRole,
   PermissionModel,
   Role,
   RoleModel,
-  SideloadableRole,
   UserModel,
 } from '../models'
 
 export class RoleProvider {
-  async sideloadRoles(roles: SideloadableRole[]) {
-    const now = new Date()
+  async loadRoles(roles: BuiltInRole[]) {
+    const created: Role[] = []
+    const updated: Role[] = []
 
     for (const role of roles) {
       const { name, permissions, alias, description } = role
 
-      await RoleModel.findOneAndUpdate(
-        { name },
-        {
-          $set: ensureValues({
+      const existing = await RoleModel.findOne({ name })
+
+      if (existing) {
+        if (
+          !isEqual(existing.permissions, permissions) ||
+          !isEqual(existing.alias, alias) ||
+          !isEqual(existing.description, description)
+        ) {
+          const item = await RoleModel.findOneAndUpdate(
+            { name },
+            {
+              $set: ensureValues({
+                permissions,
+                alias,
+                description,
+              }),
+            },
+            { returnDocument: 'after' },
+          )
+
+          if (item) {
+            updated.push(item)
+          }
+        }
+      } else {
+        const item = await RoleModel.create(
+          ensureValues({
+            name,
             permissions,
             alias,
             description,
           }),
-          $setOnInsert: {
-            createdAt: now,
-            updatedAt: now,
-          },
-        },
-        {
-          timestamps: false,
-          upsert: true,
-          returnDocument: 'after',
-        },
-      )
+        )
+
+        created.push(item)
+      }
     }
+
+    return { created, updated }
   }
 
   async createRole(

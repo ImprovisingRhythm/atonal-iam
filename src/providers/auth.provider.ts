@@ -16,7 +16,7 @@ export class AuthProvider {
   constructor(private configs: IAMConfigs) {}
 
   async getSessionBySID(sid: string) {
-    const payload = await sessionProvider.instance.getStoreBySID(sid)
+    const payload = await sessionProvider.instance.getObjectBySID(sid)
 
     if (payload === null) {
       throw new Unauthorized('invalid sid')
@@ -40,12 +40,12 @@ export class AuthProvider {
 
   async refreshSession(userId: ObjectId) {
     const key = userId.toHexString()
-    const hasSession = await sessionProvider.instance.hasStore(key)
+    const hasSession = await sessionProvider.instance.hasObject(key)
 
     if (hasSession) {
       const user = await this.getUserState(userId)
 
-      await sessionProvider.instance.setStore(key, user)
+      await sessionProvider.instance.setObject(key, user)
     }
   }
 
@@ -123,7 +123,7 @@ export class AuthProvider {
   }
 
   async signOutAll(userId: ObjectId) {
-    await sessionProvider.instance.deleteStore(userId.toHexString())
+    await sessionProvider.instance.deleteObject(userId.toHexString())
 
     return { success: true }
   }
@@ -169,7 +169,7 @@ export class AuthProvider {
       pwdHash: hashPassword(newPassword + user.salt),
     })
 
-    await sessionProvider.instance.deleteStore(userId.toHexString())
+    await sessionProvider.instance.deleteObject(userId.toHexString())
 
     return { success: true }
   }
@@ -253,7 +253,7 @@ export class AuthProvider {
     const user = await this.getUserState(userId)
     const key = user._id.toHexString()
 
-    await sessionProvider.instance.setStore(key, user)
+    await sessionProvider.instance.setObject(key, user)
 
     const sid = await sessionProvider.instance.createSID(key)
     const token = this.signToken(sid)

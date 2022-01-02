@@ -9,40 +9,40 @@ export class SessionProvider {
     this.expiresIn = this.configs.auth.session.expiresIn
   }
 
-  async hasStore(key: string) {
-    return SessionModel.store.has(key)
+  async hasObject(key: string) {
+    return SessionModel.object.has(key)
   }
 
-  async setStore(key: string, value: Record<string, any> = {}) {
-    await SessionModel.store.set(key, value, this.expiresIn)
+  async setObject(key: string, value: Record<string, any> = {}) {
+    await SessionModel.object.set(key, value, this.expiresIn)
 
     return { success: true }
   }
 
-  async getStore(key: string) {
-    return SessionModel.store.get(key)
+  async getObject(key: string) {
+    return SessionModel.object.get(key)
   }
 
-  async deleteStore(key: string) {
-    await SessionModel.store.remove(key)
+  async deleteObject(key: string) {
+    await SessionModel.object.remove(key)
 
     return { success: true }
   }
 
   async createSID(key: string) {
-    if (!(await SessionModel.store.has(key))) {
+    if (!(await SessionModel.object.has(key))) {
       throw new NotFound('key is not found')
     }
 
     const sid = randomString(8)
 
     await SessionModel.sid.set(sid, key, this.expiresIn)
-    await SessionModel.store.expire(key, this.expiresIn)
+    await SessionModel.object.expire(key, this.expiresIn)
 
     return sid
   }
 
-  async getStoreBySID(
+  async getObjectBySID(
     sid: string,
     { resetTTL = true }: { resetTTL?: boolean } = {},
   ) {
@@ -54,10 +54,10 @@ export class SessionProvider {
 
     if (resetTTL) {
       await SessionModel.sid.expire(sid, this.expiresIn)
-      await SessionModel.store.expire(key, this.expiresIn)
+      await SessionModel.object.expire(key, this.expiresIn)
     }
 
-    return SessionModel.store.get(key)
+    return SessionModel.object.get(key)
   }
 
   async deleteSID(sid: string) {

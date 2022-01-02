@@ -1,6 +1,6 @@
 import { BaseModel, Timestamps, useCollection } from 'atonal-db'
 
-export type SideloadablePermission = Pick<
+export type BuiltInPermission = Pick<
   Permission,
   'name' | 'alias' | 'description'
 >
