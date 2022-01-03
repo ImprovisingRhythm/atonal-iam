@@ -1,5 +1,6 @@
 import { TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
+import { UserMeta, UserProfile } from '../models'
 
 export interface IAMConfigs {
   databases: {
@@ -14,8 +15,9 @@ export interface IAMConfigs {
   }
   defaults?: {
     user?: {
-      roles?: string[]
       permissions?: string[]
+      profile?: UserProfile
+      meta?: UserMeta
     }
   }
   auth: {
@@ -48,6 +50,7 @@ export interface IAMConfigs {
       expiresIn: string
     }
   }
+  permissions?: Record<string, string>
 }
 
 export const useConfigs = () => useInstance<IAMConfigs>('IAM.configs')

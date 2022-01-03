@@ -3,12 +3,10 @@ import { ObjectId } from 'atonal-db'
 import { IAMConfigs } from '../common/configs'
 import { UserState } from '../types'
 import { CaptchaProvider } from './captcha.provider'
-import { RoleProvider } from './role.provider'
 import { SessionProvider } from './session.provider'
 import { UserProvider } from './user.provider'
 
 const captchaProvider = useInstance<CaptchaProvider>('IAM.provider.captcha')
-const roleProvider = useInstance<RoleProvider>('IAM.provider.role')
 const sessionProvider = useInstance<SessionProvider>('IAM.provider.session')
 const userProvider = useInstance<UserProvider>('IAM.provider.user')
 
@@ -221,27 +219,9 @@ export class AuthProvider {
       throw new Unauthorized('user has been blocked')
     }
 
-    const permissions = new Set<string>()
-
-    if (user.permissions) {
-      for (const permission of user.permissions) {
-        permissions.add(permission)
-      }
-    }
-
-    if (user.roles) {
-      const roles = await roleProvider.instance.getRolesByNames(user.roles)
-
-      for (const role of roles) {
-        for (const permission of role.permissions) {
-          permissions.add(permission)
-        }
-      }
-    }
-
     const userState: UserState = {
       _id: user._id,
-      permissions: Array.from(permissions),
+      permissions: user.permissions ?? [],
       emailVerified: user.emailVerified,
       phoneNumberVerified: user.phoneNumberVerified,
     }

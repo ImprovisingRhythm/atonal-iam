@@ -21,17 +21,14 @@ import {
 import { desensitizeUser, desensitizeUsers } from '../utils'
 import { AuthProvider } from './auth.provider'
 import { PermissionProvider } from './permission.provider'
-import { RoleProvider } from './role.provider'
 
 const configs = useConfigs()
 
 const authProvider = useInstance<AuthProvider>('IAM.provider.auth')
 const pmsProvider = useInstance<PermissionProvider>('IAM.provider.permission')
-const roleProvider = useInstance<RoleProvider>('IAM.provider.role')
 
 export class UserProvider {
   async createUser({
-    roles,
     permissions,
     username,
     email,
@@ -40,7 +37,6 @@ export class UserProvider {
     phoneNumberVerified,
     password,
   }: {
-    roles?: string[]
     permissions?: string[]
     username?: string
     email?: string
@@ -50,11 +46,7 @@ export class UserProvider {
     password?: string
   }) {
     if (permissions) {
-      await pmsProvider.instance.guardExistingPermissions(permissions)
-    }
-
-    if (roles) {
-      await roleProvider.instance.guardExistingRoles(roles)
+      pmsProvider.instance.guardPermissions(permissions)
     }
 
     const salt = randomString(8)
@@ -64,7 +56,6 @@ export class UserProvider {
       const user = await UserModel.create(
         ensureValues({
           ...configs.instance.defaults?.user,
-          roles,
           permissions,
           username,
           email,
@@ -86,7 +77,6 @@ export class UserProvider {
     {
       userId,
       userIds,
-      role,
       permission,
       username,
       email,
@@ -98,7 +88,6 @@ export class UserProvider {
     }: {
       userId?: ObjectId
       userIds?: ObjectId[]
-      role?: string
       permission?: string
       username?: string
       email?: string
@@ -113,7 +102,6 @@ export class UserProvider {
     const filter = ensureValues({
       _id: userId,
       ...(userIds && { _id: { $in: userIds } }),
-      roles: role,
       permissions: permission,
       username,
       email,
@@ -245,7 +233,7 @@ export class UserProvider {
   }
 
   async updatePermissions(userId: ObjectId, permissions: string[]) {
-    await pmsProvider.instance.guardExistingPermissions(permissions)
+    pmsProvider.instance.guardPermissions(permissions)
 
     const user = await this.updateUser(userId, { permissions })
 
@@ -254,21 +242,11 @@ export class UserProvider {
     return { permissions }
   }
 
-  async updateRoles(userId: ObjectId, roles: string[]) {
-    await roleProvider.instance.guardExistingRoles(roles)
-
-    const user = await this.updateUser(userId, { roles })
-
-    await authProvider.instance.refreshSession(user._id)
-
-    return { roles }
-  }
-
   async blockUser(userId: ObjectId) {
-    const permissions = await this.resolvePermissions(userId)
+    const permissions = await this.getUserPermissions(userId)
 
-    if (permissions.includes(IAM_PERMISSION.ADMIN)) {
-      throw new Forbidden('not allowed to block an admin user')
+    if (pmsProvider.instance.of(permissions).has(IAM_PERMISSION.BLOCK_USERS)) {
+      throw new Forbidden('not allowed to block this user')
     }
 
     await this.updateUser(userId, { blocked: true })
@@ -283,10 +261,9 @@ export class UserProvider {
     return { success: true }
   }
 
-  private async resolvePermissions(userId: ObjectId) {
+  async getUserPermissions(userId: ObjectId) {
     const user = await UserModel.findById(userId, {
       projection: {
-        roles: 1,
         permissions: 1,
       },
     })
@@ -295,25 +272,7 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
-    const permissions = new Set<string>()
-
-    if (user.permissions) {
-      for (const permission of user.permissions) {
-        permissions.add(permission)
-      }
-    }
-
-    if (user.roles) {
-      const roles = await roleProvider.instance.getRolesByNames(user.roles)
-
-      for (const role of roles) {
-        for (const permission of role.permissions) {
-          permissions.add(permission)
-        }
-      }
-    }
-
-    return Array.from(permissions)
+    return user.permissions ?? []
   }
 }
 

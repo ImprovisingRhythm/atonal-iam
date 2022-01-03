@@ -1,178 +1,94 @@
-import { Conflict, ensureValues, NotFound, useInstance } from 'atonal'
-import { makeStartsWithRegExp } from 'atonal-db'
-import { isEqual } from 'lodash'
-import {
-  BuiltInPermission,
-  Permission,
-  PermissionModel,
-  RoleModel,
-  UserModel,
-} from '../models'
+import { Forbidden, NotFound, useInstance } from 'atonal'
+import { intersectionWith } from 'lodash'
+import { IAMConfigs } from '../common/configs'
+import { IAM_DEFAULT_PERMISSIONS } from '../common/constants'
+
+const comparePermission = (a: string, b: string) => {
+  const amt = /(.+?)\.(.+?)$/.exec(a)
+  const bmt = /(.+?)\.(.+?)$/.exec(b)
+
+  if (!amt || !bmt) {
+    return false
+  }
+
+  const [ak, ar, am] = amt
+  const [bk, br, bm] = bmt
+
+  return ak === bk || (ar === br && (am === '*' || bm === '*'))
+}
+
+export class PermissionBuilder {
+  private exceptCallbacks: Array<() => boolean> = []
+
+  constructor(private permissions: string[]) {}
+
+  except(cb?: () => boolean) {
+    if (cb) {
+      this.exceptCallbacks.push(cb)
+    }
+
+    return this
+  }
+
+  has(item: string | string[]) {
+    return Array.isArray(item)
+      ? this.permissions.some(x => item.some(y => comparePermission(x, y)))
+      : this.permissions.some(x => comparePermission(item, x))
+  }
+
+  hasAll(items: string[]) {
+    return (
+      intersectionWith(this.permissions, items, comparePermission).length ===
+      items.length
+    )
+  }
+
+  guard(item: string | string[]) {
+    if (!this.has(item)) {
+      const excepted = this.exceptCallbacks.some(cb => cb())
+
+      if (!excepted) {
+        throw new Forbidden()
+      }
+    }
+  }
+
+  guardAll(items: string[]) {
+    if (!this.hasAll(items)) {
+      const excepted = this.exceptCallbacks.some(cb => cb())
+
+      if (!excepted) {
+        throw new Forbidden()
+      }
+    }
+  }
+}
 
 export class PermissionProvider {
-  async loadPermissions(permissions: BuiltInPermission[]) {
-    const created: Permission[] = []
-    const updated: Permission[] = []
+  private permissions: Record<string, string>
+  private permissionKeys: string[]
 
-    for (const permission of permissions) {
-      const { name, alias, description } = permission
-
-      const existing = await PermissionModel.findOne({ name })
-
-      if (existing) {
-        if (
-          !isEqual(existing.alias, alias) ||
-          !isEqual(existing.description, description)
-        ) {
-          const item = await PermissionModel.findOneAndUpdate(
-            { name },
-            {
-              $set: ensureValues({
-                alias,
-                description,
-              }),
-            },
-            { returnDocument: 'after' },
-          )
-
-          if (item) {
-            updated.push(item)
-          }
-        }
-      } else {
-        const item = await PermissionModel.create(
-          ensureValues({
-            name,
-            alias,
-            description,
-          }),
-        )
-
-        created.push(item)
-      }
+  constructor(configs: IAMConfigs) {
+    this.permissions = {
+      ...IAM_DEFAULT_PERMISSIONS,
+      ...configs.permissions,
     }
 
-    return { created, updated }
+    this.permissionKeys = Object.keys(this.permissions)
   }
 
-  async createPermission(
-    name: string,
-    {
-      alias,
-      description,
-    }: {
-      alias?: string
-      description?: string
-    },
-  ) {
-    try {
-      return await PermissionModel.create(
-        ensureValues({
-          name,
-          alias,
-          description,
-        }),
-      )
-    } catch {
-      throw new Conflict('permission exists')
+  getPermissions() {
+    return this.permissions
+  }
+
+  guardPermissions(permissions: string[]) {
+    if (!this.permissionKeys.some(item => permissions.includes(item))) {
+      throw new NotFound('some permissions are not found')
     }
   }
 
-  async getPermissions({
-    name,
-    sortBy = 'createdAt',
-    orderBy = 'asc',
-    skip = 0,
-    limit = 20,
-  }: {
-    name?: string
-    sortBy?: '_id' | 'createdAt' | 'updatedAt'
-    orderBy?: 'asc' | 'desc'
-    skip?: number
-    limit?: number
-  }) {
-    const filter = ensureValues({
-      ...(name && { name: makeStartsWithRegExp(name, 'i') }),
-    })
-
-    const count = await PermissionModel.countDocuments(filter)
-    const results = await PermissionModel.find(filter)
-      .sort({ [sortBy]: orderBy === 'asc' ? 1 : -1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray()
-
-    return { count, results }
-  }
-
-  async getPermission(name: string) {
-    const permission = await PermissionModel.findOne({ name })
-
-    if (!permission) {
-      throw new NotFound('permission is not found')
-    }
-
-    return permission
-  }
-
-  async updatePermission(
-    name: string,
-    partial: Partial<Pick<Permission, 'alias' | 'description'>>,
-  ) {
-    const $set = ensureValues(partial)
-    const permission = await PermissionModel.findOneAndUpdate(
-      { name },
-      { $set },
-      { returnDocument: 'after' },
-    )
-
-    if (!permission) {
-      throw new NotFound('permission is not found')
-    }
-
-    return permission
-  }
-
-  async deletePermission(name: string) {
-    const result = await PermissionModel.deleteOne({ name })
-
-    if (result.deletedCount === 0) {
-      throw new NotFound('permission is not found')
-    }
-
-    await RoleModel.updateMany(
-      { permissions: name },
-      {
-        $pull: {
-          permissions: name,
-        },
-      },
-    )
-
-    await UserModel.updateMany(
-      { permissions: name },
-      {
-        $pull: {
-          permissions: name,
-        },
-      },
-    )
-
-    return { success: true }
-  }
-
-  async guardExistingPermissions(permissions: string[]) {
-    if (permissions.length > 0) {
-      const count = await PermissionModel.countDocuments({
-        name: {
-          $in: permissions,
-        },
-      })
-
-      if (count !== permissions.length) {
-        throw new NotFound('some permissions are not found')
-      }
-    }
+  of(userPermissions: string[]) {
+    return new PermissionBuilder(userPermissions)
   }
 }
 

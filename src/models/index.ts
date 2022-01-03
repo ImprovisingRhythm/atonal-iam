@@ -1,5 +1,3 @@
 export * from './captcha.model'
-export * from './permission.model'
-export * from './role.model'
 export * from './session.model'
 export * from './user.model'

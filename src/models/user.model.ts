@@ -11,7 +11,6 @@ export interface UserProfile extends Record<string, any> {}
 export interface UserMeta extends Record<string, any> {}
 
 export interface User extends BaseModel, Timestamps {
-  roles?: string[]
   permissions?: string[]
   username?: string
   email?: string
@@ -36,7 +35,5 @@ export const UserModel = useCollection<User>({
     [{ username: 1 }, { unique: true, sparse: true }],
     [{ email: 1 }, { unique: true, sparse: true }],
     [{ phoneNumber: 1 }, { unique: true, sparse: true }],
-    { roles: 1 },
-    { permissions: 1 },
   ],
 })
