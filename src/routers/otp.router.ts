@@ -15,7 +15,7 @@ const router = useRouter({
 router.get('/uri', {
   schema: {
     querystring: Type.Object({
-      token: Type.String({ description: 'captcha token' }),
+      token: Type.String(),
     }),
   },
   handler: async req => {
@@ -29,7 +29,7 @@ router.get('/uri', {
 router.post('/generate-secret', {
   schema: {
     querystring: Type.Object({
-      token: Type.String({ description: 'captcha token' }),
+      token: Type.String(),
     }),
   },
   handler: async req => {
