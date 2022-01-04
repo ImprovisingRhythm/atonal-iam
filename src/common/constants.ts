@@ -8,7 +8,7 @@ export const IAM_PERMISSION = {
   SENSITIVE_ACCESS: 'IAM.SensitiveAccess',
 } as const
 
-export const IAM_DEFAULT_PERMISSIONS = {
+export const IAM_BUILT_IN_PERMISSIONS = {
   [IAM_PERMISSION.CREATE_USER]: 'Allow to create a new user',
   [IAM_PERMISSION.GET_USERS]: 'Allow to get any users',
   [IAM_PERMISSION.UPDATE_USERS]: 'Allow to update any users',

@@ -4,15 +4,17 @@ import {
   ServiceUnavailable,
   useInstance,
 } from 'atonal'
+import { ObjectId } from 'atonal-db'
 import { IAMConfigs } from '../common/configs'
 import { CaptchaModel } from '../models'
+import { UserProvider } from './user.provider'
 
-export type CaptchaTokenType = 'email' | 'phoneNumber'
+const userProvider = useInstance<UserProvider>('IAM.provider.user')
 
 export class CaptchaProvider {
   constructor(private configs: IAMConfigs) {}
 
-  async sendEmailCode(email: string) {
+  async sendEmailCodeNotSignedIn(email: string) {
     const { len, format, expiresIn, sendCode } = this.configs.captcha.email
 
     if (!sendCode) {
@@ -34,7 +36,17 @@ export class CaptchaProvider {
     }
   }
 
-  async sendSmsCode(phoneNumber: string) {
+  async sendEmailCode(userId: ObjectId) {
+    const user = await userProvider.instance.getRawUserBy({ _id: userId })
+
+    if (!user || !user.email) {
+      throw new PreconditionFailed('user email is not found')
+    }
+
+    return this.sendEmailCodeNotSignedIn(user.email)
+  }
+
+  async sendSmsCodeNotSignedIn(phoneNumber: string) {
     const { len, format, expiresIn, sendCode } = this.configs.captcha.sms
 
     if (!sendCode) {
@@ -56,62 +68,83 @@ export class CaptchaProvider {
     }
   }
 
-  async verifyEmailCode(email: string, code: string) {
+  async sendSmsCode(userId: ObjectId) {
+    const user = await userProvider.instance.getRawUserBy({ _id: userId })
+
+    if (!user || !user.phoneNumber) {
+      throw new PreconditionFailed('user phone number is not found')
+    }
+
+    return this.sendSmsCodeNotSignedIn(user.phoneNumber)
+  }
+
+  async verifyEmailCodeNotSignedIn(email: string, code: string) {
     const payload = await CaptchaModel.email.get(code.toUpperCase())
 
     if (payload !== email) {
       throw new PreconditionFailed('invalid code')
     }
 
-    return this.generateToken('email', email)
+    return this.generateToken(`email:${email}`)
   }
 
-  async verifySmsCode(phoneNumber: string, code: string) {
+  async verifyEmailCode(userId: ObjectId, code: string) {
+    const user = await userProvider.instance.getRawUserBy({ _id: userId })
+
+    if (!user || !user.email) {
+      throw new PreconditionFailed('user email is not found')
+    }
+
+    const payload = await CaptchaModel.email.get(code.toUpperCase())
+
+    if (payload !== user.email) {
+      throw new PreconditionFailed('invalid code')
+    }
+
+    return this.generateToken(`uid:${userId}`)
+  }
+
+  async verifySmsCodeNotSignedIn(phoneNumber: string, code: string) {
     const payload = await CaptchaModel.sms.get(code.toUpperCase())
 
     if (payload !== phoneNumber) {
       throw new PreconditionFailed('invalid code')
     }
 
-    return this.generateToken('phoneNumber', phoneNumber)
+    return this.generateToken(`sms:${phoneNumber}`)
   }
 
-  async verifyToken({
-    token,
-    email,
-    phoneNumber,
-  }: {
-    token: string
-    email?: string
-    phoneNumber?: string
-  }) {
-    let type: CaptchaTokenType
+  async verifySmsCode(userId: ObjectId, code: string) {
+    const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
-    if (email) {
-      type = 'email'
-    } else if (phoneNumber) {
-      type = 'phoneNumber'
-    } else {
-      throw new Error('must include [email] or [phoneNumber]')
+    if (!user || !user.phoneNumber) {
+      throw new PreconditionFailed('user phone number is not found')
     }
 
+    const payload = await CaptchaModel.sms.get(code.toUpperCase())
+
+    if (payload !== user.phoneNumber) {
+      throw new PreconditionFailed('invalid code')
+    }
+
+    return this.generateToken(`uid:${userId}`)
+  }
+
+  async verifyToken(token: string, identifier: string) {
     const payload = await CaptchaModel.token.get(token)
 
-    if (
-      (type === 'email' && payload === `${type}:${email}`) ||
-      (type === 'phoneNumber' && payload === `${type}:${phoneNumber}`)
-    ) {
-      await CaptchaModel.token.remove(token)
-    } else {
+    if (payload !== identifier) {
       throw new PreconditionFailed('invalid token')
     }
+
+    await CaptchaModel.token.remove(token)
   }
 
-  private async generateToken(type: CaptchaTokenType, value: string) {
+  private async generateToken(identifier: string) {
     const { len, expiresIn } = this.configs.captcha.token
     const token = randomString(len, 'all')
 
-    await CaptchaModel.token.set(token, `${type}:${value}`, expiresIn)
+    await CaptchaModel.token.set(token, identifier, expiresIn)
 
     return { token }
   }

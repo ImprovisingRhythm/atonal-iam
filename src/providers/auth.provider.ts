@@ -52,7 +52,7 @@ export class AuthProvider {
     token: string,
     password?: string,
   ) {
-    await captchaProvider.instance.verifyToken({ token, phoneNumber })
+    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
 
     return userProvider.instance.createUser({
       phoneNumber,
@@ -70,7 +70,7 @@ export class AuthProvider {
   }
 
   async signInWithPhoneNumberAndToken(phoneNumber: string, token: string) {
-    await captchaProvider.instance.verifyToken({ token, phoneNumber })
+    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
 
     const user = await userProvider.instance.getRawUserBy({ phoneNumber })
 
@@ -127,7 +127,7 @@ export class AuthProvider {
   }
 
   async bindPhoneNumber(userId: ObjectId, phoneNumber: string, token: string) {
-    await captchaProvider.instance.verifyToken({ token, phoneNumber })
+    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
 
     const user = await userProvider.instance.updateUser(userId, {
       phoneNumber,
@@ -140,7 +140,7 @@ export class AuthProvider {
   }
 
   async bindEmail(userId: ObjectId, email: string, token: string) {
-    await captchaProvider.instance.verifyToken({ token, email })
+    await captchaProvider.instance.verifyToken(token, `email:${email}`)
 
     const user = await userProvider.instance.updateUser(userId, {
       email,
@@ -173,7 +173,7 @@ export class AuthProvider {
   }
 
   async resetPasswordByEmail(email: string, password: string, token: string) {
-    await captchaProvider.instance.verifyToken({ token, email })
+    await captchaProvider.instance.verifyToken(token, `email:${email}`)
 
     const user = await userProvider.instance.getRawUserBy({ email })
 
@@ -193,7 +193,7 @@ export class AuthProvider {
     password: string,
     token: string,
   ) {
-    await captchaProvider.instance.verifyToken({ token, phoneNumber })
+    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
 
     const user = await userProvider.instance.getRawUserBy({ phoneNumber })
 

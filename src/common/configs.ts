@@ -31,6 +31,12 @@ export interface IAMConfigs {
         secret: string
       }
     }
+    otp?: {
+      issuer?: string
+      algorithm?: 'SHA1' | 'SHA256' | 'SHA512'
+      digits?: number
+      period?: number
+    }
   }
   captcha: {
     email: {

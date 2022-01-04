@@ -45,7 +45,7 @@ router.post('/sign-in', {
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       password: Type.Optional(Type.String()),
-      token: Type.Optional(Type.String()),
+      token: Type.Optional(Type.String({ description: 'captcha token' })),
     }),
   },
   handler: async req => {
@@ -107,7 +107,7 @@ router.post('/sign-up', {
       username: Type.Optional(Type.String()),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-      token: Type.Optional(Type.String()),
+      token: Type.Optional(Type.String({ description: 'captcha token' })),
       password: Type.Optional(Type.String()),
     }),
   },
@@ -186,7 +186,7 @@ router.post('/bind-email', {
   schema: {
     body: Type.Object({
       email: Type.String({ format: 'email' }),
-      token: Type.String(),
+      token: Type.String({ description: 'captcha token' }),
     }),
   },
   handler: async req => {
@@ -210,7 +210,7 @@ router.post('/bind-phone-number', {
   schema: {
     body: Type.Object({
       phoneNumber: Type.String({ format: 'phone-number' }),
-      token: Type.String(),
+      token: Type.String({ description: 'captcha token' }),
     }),
   },
   handler: async req => {
@@ -257,7 +257,7 @@ router.post('/reset-password', {
       type: Type.Literal(['email', 'phoneNumber']),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-      token: Type.String(),
+      token: Type.String({ description: 'captcha token' }),
       password: Type.String(),
     }),
   },

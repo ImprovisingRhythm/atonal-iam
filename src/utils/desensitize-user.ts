@@ -1,4 +1,4 @@
-import { DesensitizedUser, User } from '../models'
+import { User } from '../models'
 import { maskEmail, maskIdCardNumber, maskPhoneNumber } from './mask-string'
 
 export type DesensitizeMode = 'mask' | 'delete'
@@ -6,9 +6,8 @@ export type DesensitizeMode = 'mask' | 'delete'
 export const desensitizeUser = (user: User, mode: DesensitizeMode = 'mask') => {
   // @ts-ignore
   delete user.salt
-
-  // @ts-ignore
   delete user.pwdHash
+  delete user.secret
 
   if (mode === 'delete') {
     delete user.nationalId
@@ -37,7 +36,7 @@ export const desensitizeUser = (user: User, mode: DesensitizeMode = 'mask') => {
     user.phoneNumber = maskPhoneNumber(user.phoneNumber)
   }
 
-  return user as DesensitizedUser
+  return user
 }
 
 export const desensitizeUsers = (
@@ -48,5 +47,5 @@ export const desensitizeUsers = (
     desensitizeUser(user, mode)
   }
 
-  return users as DesensitizedUser[]
+  return users
 }

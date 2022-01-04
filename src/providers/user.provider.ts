@@ -9,7 +9,7 @@ import {
 } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { chain } from 'lodash'
-import { useConfigs } from '../common/configs'
+import { IAMConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
 import {
   User,
@@ -22,12 +22,12 @@ import { desensitizeUser, desensitizeUsers } from '../utils'
 import { AuthProvider } from './auth.provider'
 import { PermissionProvider } from './permission.provider'
 
-const configs = useConfigs()
-
 const authProvider = useInstance<AuthProvider>('IAM.provider.auth')
 const pmsProvider = useInstance<PermissionProvider>('IAM.provider.permission')
 
 export class UserProvider {
+  constructor(private configs: IAMConfigs) {}
+
   async createUser({
     permissions,
     username,
@@ -55,7 +55,7 @@ export class UserProvider {
     try {
       const user = await UserModel.create(
         ensureValues({
-          ...configs.instance.defaults?.user,
+          ...this.configs.defaults?.user,
           permissions,
           username,
           email,

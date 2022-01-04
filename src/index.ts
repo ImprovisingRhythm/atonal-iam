@@ -6,6 +6,7 @@ import { userPermissionPlugin } from './plugins'
 import {
   AuthProvider,
   CaptchaProvider,
+  OtpProvider,
   PermissionProvider,
   SessionProvider,
   UserProvider,
@@ -31,9 +32,10 @@ export const useIAM = (configs: IAMConfigs) => {
 
     useInstance('IAM.provider.auth', new AuthProvider(configs))
     useInstance('IAM.provider.captcha', new CaptchaProvider(configs))
+    useInstance('IAM.provider.otp', new OtpProvider(configs))
     useInstance('IAM.provider.permission', new PermissionProvider(configs))
     useInstance('IAM.provider.session', new SessionProvider(configs))
-    useInstance('IAM.provider.user', new UserProvider())
+    useInstance('IAM.provider.user', new UserProvider(configs))
 
     instance.register(userPermissionPlugin)
     instance.register(router.compile())

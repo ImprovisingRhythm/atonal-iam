@@ -1,7 +1,7 @@
 import { Forbidden, NotFound, useInstance } from 'atonal'
 import { intersectionWith } from 'lodash'
 import { IAMConfigs } from '../common/configs'
-import { IAM_DEFAULT_PERMISSIONS } from '../common/constants'
+import { IAM_BUILT_IN_PERMISSIONS } from '../common/constants'
 
 const comparePermission = (a: string, b: string) => {
   const amt = /(.+?)\.(.+?)$/.exec(a)
@@ -70,7 +70,7 @@ export class PermissionProvider {
 
   constructor(configs: IAMConfigs) {
     this.permissions = {
-      ...IAM_DEFAULT_PERMISSIONS,
+      ...IAM_BUILT_IN_PERMISSIONS,
       ...configs.permissions,
     }
 

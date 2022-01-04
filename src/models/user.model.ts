@@ -19,13 +19,12 @@ export interface User extends BaseModel, Timestamps {
   phoneNumberVerified?: boolean
   salt: string
   pwdHash?: string
+  secret?: string
   blocked?: boolean
   profile?: UserProfile
   nationalId?: UserNationalId
   meta?: UserMeta
 }
-
-export type DesensitizedUser = Omit<User, 'salt' | 'pwdHash'>
 
 export const UserModel = useCollection<User>({
   name: 'user',
@@ -35,5 +34,6 @@ export const UserModel = useCollection<User>({
     [{ username: 1 }, { unique: true, sparse: true }],
     [{ email: 1 }, { unique: true, sparse: true }],
     [{ phoneNumber: 1 }, { unique: true, sparse: true }],
+    { permissions: 1 },
   ],
 })
