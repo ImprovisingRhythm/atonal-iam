@@ -14,7 +14,7 @@ const userProvider = useInstance<UserProvider>('IAM.provider.user')
 export class CaptchaProvider {
   constructor(private configs: IAMConfigs) {}
 
-  async sendEmailCodeNotSignedIn(email: string) {
+  async sendEmailCode(email: string) {
     const { len, format, expiresIn, sendCode } = this.configs.captcha.email
 
     if (!sendCode) {
@@ -36,17 +36,17 @@ export class CaptchaProvider {
     }
   }
 
-  async sendEmailCode(userId: ObjectId) {
+  async sendEmailCodeForUser(userId: ObjectId) {
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
     if (!user || !user.email) {
       throw new PreconditionFailed('user email is not found')
     }
 
-    return this.sendEmailCodeNotSignedIn(user.email)
+    return this.sendEmailCode(user.email)
   }
 
-  async sendSmsCodeNotSignedIn(phoneNumber: string) {
+  async sendSmsCode(phoneNumber: string) {
     const { len, format, expiresIn, sendCode } = this.configs.captcha.sms
 
     if (!sendCode) {
@@ -68,17 +68,17 @@ export class CaptchaProvider {
     }
   }
 
-  async sendSmsCode(userId: ObjectId) {
+  async sendSmsCodeForUser(userId: ObjectId) {
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
     if (!user || !user.phoneNumber) {
       throw new PreconditionFailed('user phone number is not found')
     }
 
-    return this.sendSmsCodeNotSignedIn(user.phoneNumber)
+    return this.sendSmsCode(user.phoneNumber)
   }
 
-  async verifyEmailCodeNotSignedIn(email: string, code: string) {
+  async verifyEmailCode(email: string, code: string) {
     const payload = await CaptchaModel.email.get(code.toUpperCase())
 
     if (payload !== email) {
@@ -88,7 +88,7 @@ export class CaptchaProvider {
     return this.generateToken(`email:${email}`)
   }
 
-  async verifyEmailCode(userId: ObjectId, code: string) {
+  async verifyEmailCodeForUser(userId: ObjectId, code: string) {
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
     if (!user || !user.email) {
@@ -104,7 +104,7 @@ export class CaptchaProvider {
     return this.generateToken(`uid:${userId}`)
   }
 
-  async verifySmsCodeNotSignedIn(phoneNumber: string, code: string) {
+  async verifySmsCode(phoneNumber: string, code: string) {
     const payload = await CaptchaModel.sms.get(code.toUpperCase())
 
     if (payload !== phoneNumber) {
@@ -114,7 +114,7 @@ export class CaptchaProvider {
     return this.generateToken(`sms:${phoneNumber}`)
   }
 
-  async verifySmsCode(userId: ObjectId, code: string) {
+  async verifySmsCodeForUser(userId: ObjectId, code: string) {
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
     if (!user || !user.phoneNumber) {

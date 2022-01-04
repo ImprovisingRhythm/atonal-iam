@@ -33,14 +33,14 @@ router.post('/send/email-code', {
     const { email } = req.body
 
     if (email) {
-      return captchaProvider.instance.sendEmailCodeNotSignedIn(email)
+      return captchaProvider.instance.sendEmailCode(email)
     }
 
     if (!authed || !user) {
       throw new BadRequest('email should be provided if not signed in')
     }
 
-    return captchaProvider.instance.sendEmailCode(user._id)
+    return captchaProvider.instance.sendEmailCodeForUser(user._id)
   },
 })
 
@@ -65,14 +65,14 @@ router.post('/send/sms-code', {
     const { phoneNumber } = req.body
 
     if (phoneNumber) {
-      return captchaProvider.instance.sendSmsCodeNotSignedIn(phoneNumber)
+      return captchaProvider.instance.sendSmsCode(phoneNumber)
     }
 
     if (!authed || !user) {
       throw new BadRequest('phone number should be provided if not signed in')
     }
 
-    return captchaProvider.instance.sendSmsCode(user._id)
+    return captchaProvider.instance.sendSmsCodeForUser(user._id)
   },
 })
 
@@ -98,14 +98,14 @@ router.post('/verify/email-code', {
     const { code, email } = req.body
 
     if (email) {
-      return captchaProvider.instance.verifyEmailCodeNotSignedIn(email, code)
+      return captchaProvider.instance.verifyEmailCode(email, code)
     }
 
     if (!authed || !user) {
       throw new BadRequest('email should be provided if not signed in')
     }
 
-    return captchaProvider.instance.verifyEmailCode(user._id, code)
+    return captchaProvider.instance.verifyEmailCodeForUser(user._id, code)
   },
 })
 
@@ -131,17 +131,14 @@ router.post('/verify/sms-code', {
     const { code, phoneNumber } = req.body
 
     if (phoneNumber) {
-      return captchaProvider.instance.verifySmsCodeNotSignedIn(
-        phoneNumber,
-        code,
-      )
+      return captchaProvider.instance.verifySmsCode(phoneNumber, code)
     }
 
     if (!authed || !user) {
       throw new BadRequest('phone number should be provided if not signed in')
     }
 
-    return captchaProvider.instance.verifySmsCode(user._id, code)
+    return captchaProvider.instance.verifySmsCodeForUser(user._id, code)
   },
 })
 
