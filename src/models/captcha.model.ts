@@ -1,6 +1,10 @@
 import { useKV, useMultiModel } from 'atonal-db'
 
 export const CaptchaModel = useMultiModel({
+  uid: useKV({
+    name: 'captcha:uid',
+    type: 'string',
+  }),
   email: useKV({
     name: 'captcha:email',
     type: 'string',

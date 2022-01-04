@@ -1,4 +1,5 @@
 import {
+  BadRequest,
   PreconditionFailed,
   randomString,
   ServiceUnavailable,
@@ -14,7 +15,7 @@ const userProvider = useInstance<UserProvider>('IAM.provider.user')
 export class CaptchaProvider {
   constructor(private configs: IAMConfigs) {}
 
-  async sendEmailCode(email: string) {
+  async sendEmailCode(email: string, uid?: string) {
     const { len, format, expiresIn, sendCode } = this.configs.captcha.email
 
     if (!sendCode) {
@@ -24,11 +25,13 @@ export class CaptchaProvider {
     const code = randomString(len, format)
 
     try {
-      // Use the custom function to send email code
       await sendCode(email, code)
 
-      // Set the code in the kv-table with a ttl
-      await CaptchaModel.email.set(code, email, expiresIn)
+      if (uid) {
+        await CaptchaModel.uid.set(code, uid, expiresIn)
+      } else {
+        await CaptchaModel.email.set(code, email, expiresIn)
+      }
 
       return { success: true }
     } catch (error: any) {
@@ -36,17 +39,7 @@ export class CaptchaProvider {
     }
   }
 
-  async sendEmailCodeForUser(userId: ObjectId) {
-    const user = await userProvider.instance.getRawUserBy({ _id: userId })
-
-    if (!user || !user.email) {
-      throw new PreconditionFailed('user email is not found')
-    }
-
-    return this.sendEmailCode(user.email)
-  }
-
-  async sendSmsCode(phoneNumber: string) {
+  async sendSmsCode(phoneNumber: string, uid?: string) {
     const { len, format, expiresIn, sendCode } = this.configs.captcha.sms
 
     if (!sendCode) {
@@ -56,11 +49,13 @@ export class CaptchaProvider {
     const code = randomString(len, format)
 
     try {
-      // Use the custom function to send sms code
       await sendCode(phoneNumber, code)
 
-      // Set the code in the kv-table with a ttl
-      await CaptchaModel.sms.set(code, phoneNumber, expiresIn)
+      if (uid) {
+        await CaptchaModel.uid.set(code, uid, expiresIn)
+      } else {
+        await CaptchaModel.sms.set(code, phoneNumber, expiresIn)
+      }
 
       return { success: true }
     } catch (error: any) {
@@ -68,14 +63,32 @@ export class CaptchaProvider {
     }
   }
 
-  async sendSmsCodeForUser(userId: ObjectId) {
+  async send2FACode(userId: ObjectId, type: 'email' | 'sms') {
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
-    if (!user || !user.phoneNumber) {
-      throw new PreconditionFailed('user phone number is not found')
+    if (!user) {
+      throw new PreconditionFailed('user is not found')
     }
 
-    return this.sendSmsCode(user.phoneNumber)
+    const { email, emailVerified, phoneNumber, phoneNumberVerified } = user
+
+    if (type === 'email') {
+      if (!email || !emailVerified) {
+        throw new PreconditionFailed('user email is not verified')
+      }
+
+      return this.sendEmailCode(email, user._id.toHexString())
+    }
+
+    if (type === 'sms') {
+      if (!phoneNumber || !phoneNumberVerified) {
+        throw new PreconditionFailed('user phone number is not verified')
+      }
+
+      return this.sendSmsCode(phoneNumber, user._id.toHexString())
+    }
+
+    throw new BadRequest('type is not valid')
   }
 
   async verifyEmailCode(email: string, code: string) {
@@ -88,22 +101,6 @@ export class CaptchaProvider {
     return this.generateToken(`email:${email}`)
   }
 
-  async verifyEmailCodeForUser(userId: ObjectId, code: string) {
-    const user = await userProvider.instance.getRawUserBy({ _id: userId })
-
-    if (!user || !user.email) {
-      throw new PreconditionFailed('user email is not found')
-    }
-
-    const payload = await CaptchaModel.email.get(code.toUpperCase())
-
-    if (payload !== user.email) {
-      throw new PreconditionFailed('invalid code')
-    }
-
-    return this.generateToken(`uid:${userId}`)
-  }
-
   async verifySmsCode(phoneNumber: string, code: string) {
     const payload = await CaptchaModel.sms.get(code.toUpperCase())
 
@@ -114,16 +111,10 @@ export class CaptchaProvider {
     return this.generateToken(`sms:${phoneNumber}`)
   }
 
-  async verifySmsCodeForUser(userId: ObjectId, code: string) {
-    const user = await userProvider.instance.getRawUserBy({ _id: userId })
+  async verify2FACode(userId: ObjectId, code: string) {
+    const payload = await CaptchaModel.uid.get(code.toUpperCase())
 
-    if (!user || !user.phoneNumber) {
-      throw new PreconditionFailed('user phone number is not found')
-    }
-
-    const payload = await CaptchaModel.sms.get(code.toUpperCase())
-
-    if (payload !== user.phoneNumber) {
+    if (payload !== userId.toHexString()) {
       throw new PreconditionFailed('invalid code')
     }
 

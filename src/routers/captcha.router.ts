@@ -1,10 +1,4 @@
-import {
-  BadRequest,
-  Type,
-  useAuthGuards,
-  useRateLimit,
-  useRouter,
-} from 'atonal'
+import { Type, useAuthGuards, useRateLimit, useRouter } from 'atonal'
 import { keyGuard, userGuard } from '../middlewares'
 import { useCaptchaProvider } from '../providers'
 
@@ -12,12 +6,8 @@ const captchaProvider = useCaptchaProvider()
 
 const router = useRouter()
 
-router.post('/send/email-code', {
+router.post('/send/email', {
   middlewares: [
-    useAuthGuards({
-      strategy: 'ignore-error',
-      guards: [userGuard],
-    }),
     useRateLimit({
       timeWindow: 60000,
       maxRequests: 30,
@@ -25,29 +15,38 @@ router.post('/send/email-code', {
   ],
   schema: {
     body: Type.Object({
-      email: Type.Optional(Type.String({ format: 'email' })),
+      email: Type.String({ format: 'email' }),
     }),
   },
   handler: async req => {
-    const { authed, user } = req.state
     const { email } = req.body
 
-    if (email) {
-      return captchaProvider.instance.sendEmailCode(email)
-    }
-
-    if (!authed || !user) {
-      throw new BadRequest('email should be provided if not signed in')
-    }
-
-    return captchaProvider.instance.sendEmailCodeForUser(user._id)
+    return captchaProvider.instance.sendEmailCode(email)
   },
 })
 
-router.post('/send/sms-code', {
+router.post('/send/sms', {
+  middlewares: [
+    useRateLimit({
+      timeWindow: 60000,
+      maxRequests: 30,
+    }),
+  ],
+  schema: {
+    body: Type.Object({
+      phoneNumber: Type.String({ format: 'phone-number' }),
+    }),
+  },
+  handler: async req => {
+    const { phoneNumber } = req.body
+
+    return captchaProvider.instance.sendSmsCode(phoneNumber)
+  },
+})
+
+router.post('/send/2fa', {
   middlewares: [
     useAuthGuards({
-      strategy: 'ignore-error',
       guards: [userGuard],
     }),
     useRateLimit({
@@ -57,29 +56,60 @@ router.post('/send/sms-code', {
   ],
   schema: {
     body: Type.Object({
-      phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
+      type: Type.Literal(['email', 'sms']),
     }),
   },
   handler: async req => {
-    const { authed, user } = req.state
-    const { phoneNumber } = req.body
+    const { user } = req.state
+    const { type } = req.body
 
-    if (phoneNumber) {
-      return captchaProvider.instance.sendSmsCode(phoneNumber)
-    }
-
-    if (!authed || !user) {
-      throw new BadRequest('phone number should be provided if not signed in')
-    }
-
-    return captchaProvider.instance.sendSmsCodeForUser(user._id)
+    return captchaProvider.instance.send2FACode(user._id, type)
   },
 })
 
-router.post('/verify/email-code', {
+router.post('/verify/email', {
+  middlewares: [
+    useRateLimit({
+      timeWindow: 10000,
+      maxRequests: 20,
+    }),
+  ],
+  schema: {
+    body: Type.Object({
+      email: Type.String({ format: 'email' }),
+      code: Type.String(),
+    }),
+  },
+  handler: async req => {
+    const { email, code } = req.body
+
+    return captchaProvider.instance.verifyEmailCode(email, code)
+  },
+})
+
+router.post('/verify/sms', {
+  middlewares: [
+    useRateLimit({
+      timeWindow: 10000,
+      maxRequests: 20,
+    }),
+  ],
+  schema: {
+    body: Type.Object({
+      phoneNumber: Type.String({ format: 'phone-number' }),
+      code: Type.String(),
+    }),
+  },
+  handler: async req => {
+    const { phoneNumber, code } = req.body
+
+    return captchaProvider.instance.verifySmsCode(phoneNumber, code)
+  },
+})
+
+router.post('/verify/2fa', {
   middlewares: [
     useAuthGuards({
-      strategy: 'ignore-error',
       guards: [userGuard],
     }),
     useRateLimit({
@@ -90,55 +120,13 @@ router.post('/verify/email-code', {
   schema: {
     body: Type.Object({
       code: Type.String(),
-      email: Type.Optional(Type.String({ format: 'email' })),
     }),
   },
   handler: async req => {
-    const { authed, user } = req.state
-    const { code, email } = req.body
+    const { user } = req.state
+    const { code } = req.body
 
-    if (email) {
-      return captchaProvider.instance.verifyEmailCode(email, code)
-    }
-
-    if (!authed || !user) {
-      throw new BadRequest('email should be provided if not signed in')
-    }
-
-    return captchaProvider.instance.verifyEmailCodeForUser(user._id, code)
-  },
-})
-
-router.post('/verify/sms-code', {
-  middlewares: [
-    useAuthGuards({
-      strategy: 'ignore-error',
-      guards: [userGuard],
-    }),
-    useRateLimit({
-      timeWindow: 10000,
-      maxRequests: 20,
-    }),
-  ],
-  schema: {
-    body: Type.Object({
-      code: Type.String(),
-      phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-    }),
-  },
-  handler: async req => {
-    const { authed, user } = req.state
-    const { code, phoneNumber } = req.body
-
-    if (phoneNumber) {
-      return captchaProvider.instance.verifySmsCode(phoneNumber, code)
-    }
-
-    if (!authed || !user) {
-      throw new BadRequest('phone number should be provided if not signed in')
-    }
-
-    return captchaProvider.instance.verifySmsCodeForUser(user._id, code)
+    return captchaProvider.instance.verify2FACode(user._id, code)
   },
 })
 
