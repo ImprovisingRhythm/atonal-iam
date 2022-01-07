@@ -2,7 +2,7 @@ import {
   BadRequest,
   Type,
   useAuthGuards,
-  useNullableMiddleware,
+  useLazyMiddleware,
   useRateLimit,
   useRouter,
   useStatusCode,
@@ -40,7 +40,7 @@ router.post('/sign-in', {
       timeWindow: 10000,
       maxRequests: 20,
     }),
-    useNullableMiddleware(configs.instance.middlewares?.auth?.signIn),
+    useLazyMiddleware(() => configs.instance.middlewares?.auth?.signIn),
   ],
   schema: {
     body: Type.Object({
@@ -104,7 +104,7 @@ router.post('/sign-up', {
       maxRequests: 20,
     }),
     useStatusCode(201),
-    useNullableMiddleware(configs.instance.middlewares?.auth?.signUp),
+    useLazyMiddleware(() => configs.instance.middlewares?.auth?.signUp),
   ],
   schema: {
     body: Type.Object({
@@ -160,7 +160,7 @@ router.post('/sign-out', {
       timeWindow: 1000,
       maxRequests: 20,
     }),
-    useNullableMiddleware(configs.instance.middlewares?.auth?.signOut),
+    useLazyMiddleware(() => configs.instance.middlewares?.auth?.signOut),
   ],
   schema: {
     body: Type.Object({

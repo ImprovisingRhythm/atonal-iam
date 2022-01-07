@@ -85,10 +85,10 @@ atonal-db@^1.0.27:
     mongodb "^4.2.1"
     ms "^2.1.3"
 
-atonal@^1.0.38:
-  version "1.0.38"
-  resolved "https://registry.npmjs.org/atonal/-/atonal-1.0.38.tgz#91aade4065e1b912001534e2174fbc5c483f6666"
-  integrity sha512-clAFCe9iI6Zkc4LMwn/4M9PzIIjKIenoRDNaj5+4N4PptBtYx4JaJWu2fLbWvHu7551gA7w4fB7Hrkg4816buw==
+atonal@^1.0.40:
+  version "1.0.40"
+  resolved "https://registry.npmjs.org/atonal/-/atonal-1.0.40.tgz#9a2e1bbd007b862e5a332eb2b13f28342110c6bd"
+  integrity sha512-9zsqASfY3imQ//QfRITdVrvWHfMzv/5ONmC+W8Q1xQoM6ZSpfEtjvRNuKGpA87Jx5RmcqTIAx84V+ds646d2AQ==
   dependencies:
     fastify "^3.25.1"
     fastify-cookie "^5.4.0"

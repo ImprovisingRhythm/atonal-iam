@@ -1,7 +1,7 @@
 import {
   Type,
   useAuthGuards,
-  useNullableMiddleware,
+  useLazyMiddleware,
   useRateLimit,
   useRouter,
 } from 'atonal'
@@ -20,7 +20,9 @@ router.post('/send/email', {
       timeWindow: 60000,
       maxRequests: 30,
     }),
-    useNullableMiddleware(configs.instance.middlewares?.captcha?.sendEmailCode),
+    useLazyMiddleware(
+      () => configs.instance.middlewares?.captcha?.sendEmailCode,
+    ),
   ],
   schema: {
     body: Type.Object({
@@ -40,7 +42,7 @@ router.post('/send/sms', {
       timeWindow: 60000,
       maxRequests: 30,
     }),
-    useNullableMiddleware(configs.instance.middlewares?.captcha?.sendSmsCode),
+    useLazyMiddleware(() => configs.instance.middlewares?.captcha?.sendSmsCode),
   ],
   schema: {
     body: Type.Object({
@@ -63,7 +65,7 @@ router.post('/send/2fa', {
       timeWindow: 60000,
       maxRequests: 30,
     }),
-    useNullableMiddleware(configs.instance.middlewares?.captcha?.send2FACode),
+    useLazyMiddleware(() => configs.instance.middlewares?.captcha?.send2FACode),
   ],
   schema: {
     body: Type.Object({
