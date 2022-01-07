@@ -1,6 +1,7 @@
-import { TObject, useInstance } from 'atonal'
+import { Middleware, TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
-import { UserMeta, UserProfile } from '../models'
+import { User, UserMeta, UserProfile } from '../models'
+import { UserState } from '../types'
 
 export interface IAMConfigs {
   databases: {
@@ -57,6 +58,23 @@ export interface IAMConfigs {
     }
   }
   permissions?: Record<string, string>
+  hooks?: {
+    onUserCreated?: (user: User) => Promise<void> | void
+    onSignIn?: (state: UserState) => Promise<void> | void
+    onSignOut?: (state: UserState) => Promise<void> | void
+  }
+  middlewares?: {
+    auth?: {
+      signUp?: Middleware
+      signIn?: Middleware
+      signOut?: Middleware
+    }
+    captcha?: {
+      sendSmsCode?: Middleware
+      sendEmailCode?: Middleware
+      send2FACode?: Middleware
+    }
+  }
 }
 
 export const useConfigs = () => useInstance<IAMConfigs>('IAM.configs')

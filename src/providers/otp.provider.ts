@@ -2,6 +2,7 @@ import { PreconditionFailed, useInstance } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { Secret, TOTP } from 'otpauth'
 import { IAMConfigs } from '../common/configs'
+import { User } from '../models'
 import { CaptchaProvider } from './captcha.provider'
 import { UserProvider } from './user.provider'
 
@@ -30,11 +31,7 @@ export class OtpProvider {
       throw new PreconditionFailed('a generated secret is required')
     }
 
-    const uri = new TOTP({
-      ...this.configs.auth.otp,
-      label: user._id.toHexString(),
-      secret: user.secret,
-    }).toString()
+    const uri = this.getTOTPFromUser(user).toString()
 
     return { uri }
   }
@@ -46,14 +43,19 @@ export class OtpProvider {
       throw new PreconditionFailed('a generated secret is required')
     }
 
-    const delta = new TOTP({
-      ...this.configs.auth.otp,
-      secret: user.secret,
-    }).validate({ token })
+    const delta = this.getTOTPFromUser(user).validate({ token })
 
     if (delta === null) {
       throw new PreconditionFailed('invalid token')
     }
+  }
+
+  private getTOTPFromUser(user: User) {
+    return new TOTP({
+      ...this.configs.auth.otp,
+      label: user._id.toHexString(),
+      secret: user.secret,
+    })
   }
 }
 

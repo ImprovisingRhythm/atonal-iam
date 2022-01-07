@@ -114,14 +114,22 @@ export class AuthProvider {
     return this.handleSignIn(user._id)
   }
 
-  async signOut(sid: string) {
+  async signOut(sid: string, user?: UserState) {
     await sessionProvider.instance.deleteSID(sid)
+
+    if (user) {
+      await this.configs.hooks?.onSignIn?.(user)
+    }
 
     return { success: true }
   }
 
-  async signOutAll(userId: ObjectId) {
+  async signOutAll(userId: ObjectId, user?: UserState) {
     await sessionProvider.instance.deleteObject(userId.toHexString())
+
+    if (user) {
+      await this.configs.hooks?.onSignIn?.(user)
+    }
 
     return { success: true }
   }
@@ -237,6 +245,8 @@ export class AuthProvider {
 
     const sid = await sessionProvider.instance.createSID(key)
     const token = this.signToken(sid)
+
+    await this.configs.hooks?.onSignIn?.(user)
 
     return { sid, token, user }
   }

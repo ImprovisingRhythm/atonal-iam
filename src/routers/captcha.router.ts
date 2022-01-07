@@ -1,7 +1,15 @@
-import { Type, useAuthGuards, useRateLimit, useRouter } from 'atonal'
+import {
+  Type,
+  useAuthGuards,
+  useNullableMiddleware,
+  useRateLimit,
+  useRouter,
+} from 'atonal'
+import { useConfigs } from '../common/configs'
 import { keyGuard, userGuard } from '../middlewares'
 import { useCaptchaProvider } from '../providers'
 
+const configs = useConfigs()
 const captchaProvider = useCaptchaProvider()
 
 const router = useRouter()
@@ -12,6 +20,7 @@ router.post('/send/email', {
       timeWindow: 60000,
       maxRequests: 30,
     }),
+    useNullableMiddleware(configs.instance.middlewares?.captcha?.sendEmailCode),
   ],
   schema: {
     body: Type.Object({
@@ -31,6 +40,7 @@ router.post('/send/sms', {
       timeWindow: 60000,
       maxRequests: 30,
     }),
+    useNullableMiddleware(configs.instance.middlewares?.captcha?.sendSmsCode),
   ],
   schema: {
     body: Type.Object({
@@ -53,6 +63,7 @@ router.post('/send/2fa', {
       timeWindow: 60000,
       maxRequests: 30,
     }),
+    useNullableMiddleware(configs.instance.middlewares?.captcha?.send2FACode),
   ],
   schema: {
     body: Type.Object({

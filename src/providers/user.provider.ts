@@ -67,6 +67,8 @@ export class UserProvider {
         }),
       )
 
+      await this.configs.hooks?.onUserCreated?.(user)
+
       return desensitizeUser(user)
     } catch {
       throw new Conflict('user exists')
@@ -76,7 +78,6 @@ export class UserProvider {
   async getUsers(
     {
       userId,
-      userIds,
       permission,
       username,
       email,
@@ -87,7 +88,6 @@ export class UserProvider {
       limit = 20,
     }: {
       userId?: ObjectId
-      userIds?: ObjectId[]
       permission?: string
       username?: string
       email?: string
@@ -101,7 +101,6 @@ export class UserProvider {
   ) {
     const filter = ensureValues({
       _id: userId,
-      ...(userIds && { _id: { $in: userIds } }),
       permissions: permission,
       username,
       email,
@@ -141,6 +140,10 @@ export class UserProvider {
     phoneNumber?: string
   }) {
     return UserModel.findOne(filter)
+  }
+
+  async getRawUsersByIds(ids: ObjectId[]) {
+    return UserModel.find({ _id: { $in: ids } }).toArray()
   }
 
   async updateUser(userId: ObjectId, partial: Partial<User>) {

@@ -1,4 +1,4 @@
-import { makeArray, transform, Type, useAuthGuards, useRouter } from 'atonal'
+import { transform, Type, useAuthGuards, useRouter } from 'atonal'
 import { ObjectId } from 'atonal-db'
 import { useConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
@@ -41,9 +41,6 @@ router.get('/', {
   schema: {
     querystring: Type.Object({
       userId: Type.Optional(Type.String({ format: 'object-id' })),
-      userIds: Type.Optional(
-        Type.ArrayOr(Type.String({ format: 'object-id' })),
-      ),
       permission: Type.Optional(Type.String()),
       username: Type.Optional(Type.String()),
       email: Type.Optional(Type.String({ format: 'email' })),
@@ -57,41 +54,15 @@ router.get('/', {
   handler: async req => {
     req.guardPermission(IAM_PERMISSION.GET_USERS)
 
-    const {
-      userId,
-      userIds,
-      permission,
-      username,
-      email,
-      phoneNumber,
-      sortBy,
-      orderBy,
-      skip,
-      limit,
-    } = transform(req.query, {
+    const params = transform(req.query, {
       userId: ObjectId.createFromHexString,
-      userIds: x => makeArray(x).map(ObjectId.createFromHexString),
       skip: Number,
       limit: Number,
     })
 
-    return userProvider.instance.getUsers(
-      {
-        userId,
-        userIds,
-        permission,
-        username,
-        email,
-        phoneNumber,
-        sortBy,
-        orderBy,
-        skip,
-        limit,
-      },
-      {
-        sensitive: req.hasPermission(IAM_PERMISSION.SENSITIVE_ACCESS),
-      },
-    )
+    return userProvider.instance.getUsers(params, {
+      sensitive: req.hasPermission(IAM_PERMISSION.SENSITIVE_ACCESS),
+    })
   },
 })
 

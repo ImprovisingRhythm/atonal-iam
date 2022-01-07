@@ -2,13 +2,16 @@ import {
   BadRequest,
   Type,
   useAuthGuards,
+  useNullableMiddleware,
   useRateLimit,
   useRouter,
   useStatusCode,
 } from 'atonal'
+import { useConfigs } from '../common/configs'
 import { userGuard } from '../middlewares'
 import { useAuthProvider } from '../providers'
 
+const configs = useConfigs()
 const authProvider = useAuthProvider()
 
 const router = useRouter()
@@ -37,6 +40,7 @@ router.post('/sign-in', {
       timeWindow: 10000,
       maxRequests: 20,
     }),
+    useNullableMiddleware(configs.instance.middlewares?.auth?.signIn),
   ],
   schema: {
     body: Type.Object({
@@ -100,6 +104,7 @@ router.post('/sign-up', {
       maxRequests: 20,
     }),
     useStatusCode(201),
+    useNullableMiddleware(configs.instance.middlewares?.auth?.signUp),
   ],
   schema: {
     body: Type.Object({
@@ -147,11 +152,6 @@ router.post('/sign-up', {
 })
 
 router.post('/sign-out', {
-  schema: {
-    body: Type.Object({
-      allSessions: Type.Optional(Type.Boolean()),
-    }),
-  },
   middlewares: [
     useAuthGuards({
       guards: [userGuard],
@@ -160,16 +160,22 @@ router.post('/sign-out', {
       timeWindow: 1000,
       maxRequests: 20,
     }),
+    useNullableMiddleware(configs.instance.middlewares?.auth?.signOut),
   ],
+  schema: {
+    body: Type.Object({
+      allSessions: Type.Optional(Type.Boolean()),
+    }),
+  },
   handler: async req => {
     const { sid, user } = req.state
     const { allSessions = false } = req.body
 
     if (allSessions) {
-      return authProvider.instance.signOutAll(user._id)
+      return authProvider.instance.signOutAll(user._id, user)
     }
 
-    return authProvider.instance.signOut(sid)
+    return authProvider.instance.signOut(sid, user)
   },
 })
 
