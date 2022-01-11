@@ -74,10 +74,10 @@ atomic-sleep@^1.0.0:
   resolved "https://registry.npmjs.org/atomic-sleep/-/atomic-sleep-1.0.0.tgz#eb85b77a601fc932cfe432c5acd364a9e2c9075b"
   integrity sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==
 
-atonal-db@^1.0.27:
-  version "1.0.27"
-  resolved "https://registry.npmjs.org/atonal-db/-/atonal-db-1.0.27.tgz#2be776f2495298feb721383d5a6428b33b2e237a"
-  integrity sha512-0cFFXKtJg+01I+GPzV0PQz6DxpYnv/iPxBUvKMbo76DL9E07T8le0cyc4r+AIZutJcCbUynGJiYkr/0SJBFThQ==
+atonal-db@^1.0.28:
+  version "1.0.28"
+  resolved "https://registry.npmjs.org/atonal-db/-/atonal-db-1.0.28.tgz#8d3a5f9858082875a24d01ceef665a1749adc08b"
+  integrity sha512-+maj6g3SHjCEp13Uaj0dhnvUolSLok1b95UE4eMI6LIFJxFHC/WJcrqOL2gZeX/mQ4WuN9etlHFIhzEJeCp95Q==
   dependencies:
     "@types/ioredis" "^4.28.2"
     ioredis "^4.28.2"
