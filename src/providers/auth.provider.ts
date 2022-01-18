@@ -26,6 +26,8 @@ export class AuthProvider {
       })
     }
 
+    await this.configs.hooks?.onGetSession?.(payload as UserState)
+
     return payload as UserState
   }
 

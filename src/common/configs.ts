@@ -60,6 +60,13 @@ export interface IAMConfigs {
   permissions?: Record<string, string>
   hooks?: {
     onUserCreated?: (user: User) => Promise<void> | void
+    onUserPermissionUpdated?: (user: User) => Promise<void> | void
+    onUserProfileUpdated?: (user: User) => Promise<void> | void
+    onUserMetaUpdated?: (user: User) => Promise<void> | void
+    onUserNationalIdUpdated?: (user: User) => Promise<void> | void
+    onUserBlocked?: (user: User) => Promise<void> | void
+    onUserUnblocked?: (user: User) => Promise<void> | void
+    onGetSession?: (state: UserState) => Promise<void> | void
     onSignIn?: (state: UserState) => Promise<void> | void
     onSignOut?: (state: UserState) => Promise<void> | void
   }

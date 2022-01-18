@@ -177,6 +177,8 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
+    await this.configs.hooks?.onUserProfileUpdated?.(user)
+
     return user.profile ?? {}
   }
 
@@ -191,6 +193,8 @@ export class UserProvider {
     if (!user) {
       throw new NotFound('user is not found')
     }
+
+    await this.configs.hooks?.onUserProfileUpdated?.(user)
 
     return user.profile ?? {}
   }
@@ -212,6 +216,8 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
+    await this.configs.hooks?.onUserMetaUpdated?.(user)
+
     return user.meta ?? {}
   }
 
@@ -232,6 +238,8 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
+    await this.configs.hooks?.onUserNationalIdUpdated?.(user)
+
     return user.nationalId ?? {}
   }
 
@@ -241,6 +249,7 @@ export class UserProvider {
     const user = await this.updateUser(userId, { permissions })
 
     await authProvider.instance.refreshSession(user._id)
+    await this.configs.hooks?.onUserPermissionUpdated?.(user)
 
     return { permissions }
   }
@@ -252,14 +261,18 @@ export class UserProvider {
       throw new Forbidden('not allowed to block this user')
     }
 
-    await this.updateUser(userId, { blocked: true })
+    const user = await this.updateUser(userId, { blocked: true })
+
     await authProvider.instance.signOutAll(userId)
+    await this.configs.hooks?.onUserBlocked?.(user)
 
     return { success: true }
   }
 
   async unblockUser(userId: ObjectId) {
-    await this.updateUser(userId, { blocked: false })
+    const user = await this.updateUser(userId, { blocked: false })
+
+    await this.configs.hooks?.onUserUnblocked?.(user)
 
     return { success: true }
   }

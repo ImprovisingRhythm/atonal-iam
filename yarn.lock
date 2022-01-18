@@ -74,10 +74,10 @@ atomic-sleep@^1.0.0:
   resolved "https://registry.npmjs.org/atomic-sleep/-/atomic-sleep-1.0.0.tgz#eb85b77a601fc932cfe432c5acd364a9e2c9075b"
   integrity sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==
 
-atonal-db@^1.0.29:
-  version "1.0.29"
-  resolved "https://registry.npmjs.org/atonal-db/-/atonal-db-1.0.29.tgz#7a4d231eb0c2ceda02705444bf3b4a301d826e4d"
-  integrity sha512-hcL8szVWowcfVjiDFifpadACXDBYpXIHInYwnG0K4qUomwVVaYon9sUY373KM2S1ReWaMZaD79/GOFVMgmk3Cg==
+atonal-db@^1.0.30:
+  version "1.0.30"
+  resolved "https://registry.npmjs.org/atonal-db/-/atonal-db-1.0.30.tgz#ab8420fdd4b75dfe4ce21ebd691965eeb5367e7a"
+  integrity sha512-OjOALwY61wIsKmEv+fgxpO7oIcOYt9mOhQZfLTb8CoJRTgQ/Ygf26Gyv1c5vjRECHwJw+BcUNiHiHP3McbPYbQ==
   dependencies:
     "@types/ioredis" "^4.28.2"
     ioredis "^4.28.2"
@@ -455,10 +455,10 @@ once@^1.3.0:
   dependencies:
     wrappy "1"
 
-otpauth@^7.0.8:
-  version "7.0.8"
-  resolved "https://registry.npmjs.org/otpauth/-/otpauth-7.0.8.tgz#fc00b6140e6effb13532ed337d0792f4efa22c60"
-  integrity sha512-cNBDVbxtgIFXRmmvMcIEMN4qFFM1u16NLfjakfTC5WGjxPDQNfj7cTvtGPBYW7A3W/D4nshPv2OBiByZN+awtw==
+otpauth@^7.0.9:
+  version "7.0.9"
+  resolved "https://registry.npmjs.org/otpauth/-/otpauth-7.0.9.tgz#4af53bd5e5132d1fa3660ef776b717b0a939b09e"
+  integrity sha512-6dN1gFE0zCTYmVgy3THf3RXPKl4V7SyjDss2FSXlztE6pVqnOmbEQkqYoXKVC9Cf7OISb6/scHvKH26y/+c92A==
   dependencies:
     jssha "~3.2.0"
 

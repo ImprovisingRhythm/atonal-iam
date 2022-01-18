@@ -1,6 +1,6 @@
 {
   "name": "atonal-iam",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "The permission-based IAM implementation based on Atonal Framework",
   "main": "dist/index.js",
   "author": "Improvising Rhythm Ltd.",
@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "atonal": "^1.0.40",
-    "atonal-db": "^1.0.29",
+    "atonal-db": "^1.0.30",
     "libphonenumber-js": "^1.9.44",
     "lodash": "^4.17.21",
-    "otpauth": "^7.0.8"
+    "otpauth": "^7.0.9"
   }
 }
