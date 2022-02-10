@@ -11,8 +11,8 @@ export const IAM_PERMISSION = {
 } as const
 
 export const IAM_ROLE = {
-  ADMIN: 'IAM.Role.Admin',
-  COORDINATOR: 'IAM.Role.Coordinator',
+  ADMIN: 'IAM.admin',
+  COORDINATOR: 'IAM.coordinator',
 } as const
 
 export const IAM_BUILT_IN_PERMISSIONS: PermissionDef[] = [
@@ -50,7 +50,7 @@ export const IAM_BUILT_IN_ROLES: RoleDef[] = [
   },
   {
     name: IAM_ROLE.COORDINATOR,
-    description: 'Granted IAM permissions helpful for coordinating',
+    description: 'Granted necessary IAM permissions for coordinating',
     permissions: [
       IAM_PERMISSION.CREATE_USER,
       IAM_PERMISSION.GET_USERS,

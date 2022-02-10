@@ -1,6 +1,6 @@
 {
   "name": "atonal-iam",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "The RBAC-based IAM implementation based on Atonal Framework",
   "main": "dist/index.js",
   "author": "Improvising Rhythm Ltd.",
