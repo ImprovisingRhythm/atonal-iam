@@ -218,7 +218,7 @@ export class AuthProvider {
     return { success: true }
   }
 
-  private async getUserState(userId: ObjectId) {
+  private async getUserState(userId: ObjectId): Promise<UserState> {
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 
     if (!user) {
@@ -229,14 +229,13 @@ export class AuthProvider {
       throw new Unauthorized('user has been blocked')
     }
 
-    const userState: UserState = {
+    return {
       _id: user._id,
       permissions: user.permissions ?? [],
+      roles: user.roles ?? [],
       emailVerified: user.emailVerified,
       phoneNumberVerified: user.phoneNumberVerified,
     }
-
-    return userState
   }
 
   private async handleSignIn(userId: ObjectId) {

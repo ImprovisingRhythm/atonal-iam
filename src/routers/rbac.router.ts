@@ -1,9 +1,9 @@
 import { useAuthGuards, useRouter } from 'atonal'
 import { IAM_PERMISSION } from '../common/constants'
 import { keyGuard, userGuard } from '../middlewares'
-import { usePermissionProvider } from '../providers'
+import { useRBACProvider } from '../providers'
 
-const pmsProvider = usePermissionProvider()
+const rbacProvider = useRBACProvider()
 
 const router = useRouter({
   middlewares: [
@@ -14,9 +14,15 @@ const router = useRouter({
   ],
 })
 
-router.get('/', {
+router.get('/permissions', {
   handler: async () => {
-    return pmsProvider.instance.getPermissions()
+    return rbacProvider.instance.getPermissionDefs()
+  },
+})
+
+router.get('/roles', {
+  handler: async () => {
+    return rbacProvider.instance.getRoleDefs()
   },
 })
 

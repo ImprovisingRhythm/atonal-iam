@@ -1,8 +1,8 @@
 import { Type, useAuthGuards, useRouter } from 'atonal'
 import { userGuard } from '../middlewares'
-import { useOtpProvider } from '../providers'
+import { useOTPProvider } from '../providers'
 
-const otpProvider = useOtpProvider()
+const otpProvider = useOTPProvider()
 
 const router = useRouter({
   middlewares: [

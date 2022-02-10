@@ -9,7 +9,7 @@ import { UserProvider } from './user.provider'
 const captchaProvider = useInstance<CaptchaProvider>('IAM.provider.captcha')
 const userProvider = useInstance<UserProvider>('IAM.provider.user')
 
-export class OtpProvider {
+export class OTPProvider {
   constructor(private configs: IAMConfigs) {}
 
   async generateSecret(userId: ObjectId, token: string) {
@@ -59,4 +59,4 @@ export class OtpProvider {
   }
 }
 
-export const useOtpProvider = () => useInstance<OtpProvider>('IAM.provider.otp')
+export const useOTPProvider = () => useInstance<OTPProvider>('IAM.provider.otp')

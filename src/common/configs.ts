@@ -1,7 +1,7 @@
 import { Middleware, TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
 import { User, UserMeta, UserProfile } from '../models'
-import { UserState } from '../types'
+import { PermissionDef, RoleDef, UserState } from '../types'
 
 export interface IAMConfigs {
   databases: {
@@ -12,13 +12,6 @@ export interface IAMConfigs {
     user?: {
       profile?: TObject<{}>
       meta?: TObject<{}>
-    }
-  }
-  defaults?: {
-    user?: {
-      permissions?: string[]
-      profile?: UserProfile
-      meta?: UserMeta
     }
   }
   auth: {
@@ -57,7 +50,18 @@ export interface IAMConfigs {
       expiresIn: string
     }
   }
-  permissions?: Record<string, string>
+  rbac?: {
+    permissionDefs?: PermissionDef[]
+    roleDefs?: RoleDef[]
+  }
+  defaults?: {
+    user?: {
+      permissions?: string[]
+      roles?: string[]
+      profile?: UserProfile
+      meta?: UserMeta
+    }
+  }
   hooks?: {
     onUserCreated?: (user: User) => Promise<void> | void
     onUserPermissionUpdated?: (user: User) => Promise<void> | void

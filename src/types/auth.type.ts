@@ -6,6 +6,7 @@ export declare type AuthMethod = 'key' | 'user'
 export declare interface UserState {
   _id: ObjectId
   permissions: string[]
+  roles: string[]
   emailVerified?: boolean
   phoneNumberVerified?: boolean
 }

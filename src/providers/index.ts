@@ -1,6 +1,6 @@
 export * from './auth.provider'
 export * from './captcha.provider'
 export * from './otp.provider'
-export * from './permission.provider'
+export * from './rbac.provider'
 export * from './session.provider'
 export * from './user.provider'

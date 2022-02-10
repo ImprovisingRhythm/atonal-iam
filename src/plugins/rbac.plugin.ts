@@ -1,9 +1,9 @@
 import { Forbidden, usePlugin } from 'atonal'
-import { usePermissionProvider } from '../providers'
+import { useRBACProvider } from '../providers'
 
-const pmsProvider = usePermissionProvider()
+const rbacProvider = useRBACProvider()
 
-export const userPermissionPlugin = usePlugin(
+export const rbacPlugin = usePlugin(
   async (instance, _, next) => {
     instance.decorateRequest(
       'hasPermission',
@@ -15,9 +15,7 @@ export const userPermissionPlugin = usePlugin(
         }
 
         if (authMethod === 'user') {
-          const result = pmsProvider.instance
-            .of(user.permissions)
-            .has(permission)
+          const result = rbacProvider.instance.of(user).has(permission)
 
           if (result) {
             return true
@@ -40,9 +38,7 @@ export const userPermissionPlugin = usePlugin(
         }
 
         if (authMethod === 'user') {
-          const result = pmsProvider.instance
-            .of(user.permissions)
-            .hasAll(permissions)
+          const result = rbacProvider.instance.of(user).hasAll(permissions)
 
           if (result) {
             return true
@@ -65,10 +61,7 @@ export const userPermissionPlugin = usePlugin(
         }
 
         if (authMethod === 'user') {
-          pmsProvider.instance
-            .of(user.permissions)
-            .except(except)
-            .guard(permission)
+          rbacProvider.instance.of(user).except(except).guard(permission)
         }
       },
     )
@@ -83,10 +76,7 @@ export const userPermissionPlugin = usePlugin(
         }
 
         if (authMethod === 'user') {
-          pmsProvider.instance
-            .of(user.permissions)
-            .except(except)
-            .guardAll(permissions)
+          rbacProvider.instance.of(user).except(except).guardAll(permissions)
         }
       },
     )

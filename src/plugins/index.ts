@@ -1,1 +1,1 @@
-export * from './user-permission.plugin'
+export * from './rbac.plugin'

@@ -42,6 +42,7 @@ router.get('/', {
     querystring: Type.Object({
       userId: Type.Optional(Type.String({ format: 'object-id' })),
       permission: Type.Optional(Type.String()),
+      role: Type.Optional(Type.String()),
       username: Type.Optional(Type.String()),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
@@ -196,6 +197,27 @@ router.put('/:userId/permissions', {
     })
 
     return userProvider.instance.updatePermissions(userId, permissions)
+  },
+})
+
+router.put('/:userId/roles', {
+  schema: {
+    params: Type.Object({
+      userId: Type.String({ format: 'object-id' }),
+    }),
+    body: Type.Object({
+      roles: Type.Array(Type.String()),
+    }),
+  },
+  handler: async req => {
+    req.guardPermission(IAM_PERMISSION.MANAGE_PERMISSIONS)
+
+    const { roles } = req.body
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
+
+    return userProvider.instance.updateRoles(userId, roles)
   },
 })
 

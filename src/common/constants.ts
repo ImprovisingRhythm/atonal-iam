@@ -1,3 +1,5 @@
+import { PermissionDef, RoleDef } from '../types'
+
 export const IAM_PERMISSION = {
   ALL: 'IAM.*',
   CREATE_USER: 'IAM.CreateUser',
@@ -8,11 +10,52 @@ export const IAM_PERMISSION = {
   SENSITIVE_ACCESS: 'IAM.SensitiveAccess',
 } as const
 
-export const IAM_BUILT_IN_PERMISSIONS = {
-  [IAM_PERMISSION.CREATE_USER]: 'Allow to create a new user',
-  [IAM_PERMISSION.GET_USERS]: 'Allow to get any users',
-  [IAM_PERMISSION.UPDATE_USERS]: 'Allow to update any users',
-  [IAM_PERMISSION.BLOCK_USERS]: 'Allow to block and unblock users',
-  [IAM_PERMISSION.MANAGE_PERMISSIONS]: 'Allow to get and set permissions',
-  [IAM_PERMISSION.SENSITIVE_ACCESS]: 'Allow to access sensitive data',
-}
+export const IAM_ROLE = {
+  ADMIN: 'IAM.Role.Admin',
+  COORDINATOR: 'IAM.Role.Coordinator',
+} as const
+
+export const IAM_BUILT_IN_PERMISSIONS: PermissionDef[] = [
+  {
+    name: IAM_PERMISSION.CREATE_USER,
+    description: 'Allow to create a new user',
+  },
+  {
+    name: IAM_PERMISSION.GET_USERS,
+    description: 'Allow to get any users',
+  },
+  {
+    name: IAM_PERMISSION.UPDATE_USERS,
+    description: 'Allow to update any users',
+  },
+  {
+    name: IAM_PERMISSION.BLOCK_USERS,
+    description: 'Allow to block and unblock users',
+  },
+  {
+    name: IAM_PERMISSION.MANAGE_PERMISSIONS,
+    description: 'Allow to get and set permissions',
+  },
+  {
+    name: IAM_PERMISSION.SENSITIVE_ACCESS,
+    description: 'Allow to access sensitive data',
+  },
+]
+
+export const IAM_BUILT_IN_ROLES: RoleDef[] = [
+  {
+    name: IAM_ROLE.ADMIN,
+    description: 'Granted all IAM permissions',
+    permissions: [IAM_PERMISSION.ALL],
+  },
+  {
+    name: IAM_ROLE.COORDINATOR,
+    description: 'Granted IAM permissions helpful for coordinating',
+    permissions: [
+      IAM_PERMISSION.CREATE_USER,
+      IAM_PERMISSION.GET_USERS,
+      IAM_PERMISSION.UPDATE_USERS,
+      IAM_PERMISSION.BLOCK_USERS,
+    ],
+  },
+]

@@ -12,6 +12,7 @@ export interface UserMeta extends Record<string, any> {}
 
 export interface User extends BaseModel, Timestamps {
   permissions?: string[]
+  roles?: string[]
   username?: string
   email?: string
   emailVerified?: boolean
@@ -35,5 +36,6 @@ export const UserModel = useCollection<User>({
     [{ email: 1 }, { unique: true, sparse: true }],
     [{ phoneNumber: 1 }, { unique: true, sparse: true }],
     { permissions: 1 },
+    { roles: 1 },
   ],
 })

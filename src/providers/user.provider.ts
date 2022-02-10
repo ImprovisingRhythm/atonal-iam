@@ -20,16 +20,17 @@ import {
 } from '../models'
 import { desensitizeUser, desensitizeUsers } from '../utils'
 import { AuthProvider } from './auth.provider'
-import { PermissionProvider } from './permission.provider'
+import { RBACProvider } from './rbac.provider'
 
 const authProvider = useInstance<AuthProvider>('IAM.provider.auth')
-const pmsProvider = useInstance<PermissionProvider>('IAM.provider.permission')
+const rbacProvider = useInstance<RBACProvider>('IAM.provider.rbac')
 
 export class UserProvider {
   constructor(private configs: IAMConfigs) {}
 
   async createUser({
     permissions,
+    roles,
     username,
     email,
     emailVerified,
@@ -38,6 +39,7 @@ export class UserProvider {
     password,
   }: {
     permissions?: string[]
+    roles?: string[]
     username?: string
     email?: string
     emailVerified?: boolean
@@ -46,7 +48,11 @@ export class UserProvider {
     password?: string
   }) {
     if (permissions) {
-      pmsProvider.instance.guardPermissions(permissions)
+      rbacProvider.instance.checkExistingPermissions(permissions)
+    }
+
+    if (roles) {
+      rbacProvider.instance.checkExistingRoles(roles)
     }
 
     const salt = randomString(8)
@@ -57,6 +63,7 @@ export class UserProvider {
         ensureValues({
           ...this.configs.defaults?.user,
           permissions,
+          roles,
           username,
           email,
           emailVerified,
@@ -79,6 +86,7 @@ export class UserProvider {
     {
       userId,
       permission,
+      role,
       username,
       email,
       phoneNumber,
@@ -89,6 +97,7 @@ export class UserProvider {
     }: {
       userId?: ObjectId
       permission?: string
+      role?: string
       username?: string
       email?: string
       phoneNumber?: string
@@ -102,6 +111,7 @@ export class UserProvider {
     const filter = ensureValues({
       _id: userId,
       permissions: permission,
+      roles: role,
       username,
       email,
       phoneNumber,
@@ -244,7 +254,7 @@ export class UserProvider {
   }
 
   async updatePermissions(userId: ObjectId, permissions: string[]) {
-    pmsProvider.instance.guardPermissions(permissions)
+    rbacProvider.instance.checkExistingPermissions(permissions)
 
     const user = await this.updateUser(userId, { permissions })
 
@@ -254,10 +264,21 @@ export class UserProvider {
     return { permissions }
   }
 
-  async blockUser(userId: ObjectId) {
-    const permissions = await this.getUserPermissions(userId)
+  async updateRoles(userId: ObjectId, roles: string[]) {
+    rbacProvider.instance.checkExistingRoles(roles)
 
-    if (pmsProvider.instance.of(permissions).has(IAM_PERMISSION.BLOCK_USERS)) {
+    const user = await this.updateUser(userId, { roles })
+
+    await authProvider.instance.refreshSession(user._id)
+    await this.configs.hooks?.onUserPermissionUpdated?.(user)
+
+    return { roles }
+  }
+
+  async blockUser(userId: ObjectId) {
+    const rbacProfile = await this.getUserRBACProfile(userId)
+
+    if (rbacProvider.instance.of(rbacProfile).has(IAM_PERMISSION.BLOCK_USERS)) {
       throw new Forbidden('not allowed to block this user')
     }
 
@@ -277,10 +298,11 @@ export class UserProvider {
     return { success: true }
   }
 
-  async getUserPermissions(userId: ObjectId) {
+  async getUserRBACProfile(userId: ObjectId) {
     const user = await UserModel.findById(userId, {
       projection: {
         permissions: 1,
+        roles: 1,
       },
     })
 
@@ -288,7 +310,7 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
-    return user.permissions ?? []
+    return user
   }
 }
 
