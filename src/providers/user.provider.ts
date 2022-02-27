@@ -82,6 +82,35 @@ export class UserProvider {
     }
   }
 
+  async countUsers({
+    userId,
+    permission,
+    role,
+    username,
+    email,
+    phoneNumber,
+  }: {
+    userId?: ObjectId
+    permission?: string
+    role?: string
+    username?: string
+    email?: string
+    phoneNumber?: string
+  }) {
+    const count = await UserModel.countDocuments(
+      ensureValues({
+        _id: userId,
+        permissions: permission,
+        roles: role,
+        username,
+        email,
+        phoneNumber,
+      }),
+    )
+
+    return { count }
+  }
+
   async getUsers(
     {
       userId,
@@ -108,26 +137,22 @@ export class UserProvider {
     },
     { sensitive = false }: { sensitive?: boolean } = {},
   ) {
-    const filter = ensureValues({
-      _id: userId,
-      permissions: permission,
-      roles: role,
-      username,
-      email,
-      phoneNumber,
-    })
-
-    const count = await UserModel.countDocuments(filter)
-    const results = await UserModel.find(filter)
+    const users = await UserModel.find(
+      ensureValues({
+        _id: userId,
+        permissions: permission,
+        roles: role,
+        username,
+        email,
+        phoneNumber,
+      }),
+    )
       .sort({ [sortBy]: orderBy === 'asc' ? 1 : -1 })
       .skip(skip)
       .limit(limit)
       .toArray()
 
-    return {
-      count,
-      results: desensitizeUsers(results, sensitive ? 'mask' : 'delete'),
-    }
+    return desensitizeUsers(users, sensitive ? 'mask' : 'delete')
   }
 
   async getUser(

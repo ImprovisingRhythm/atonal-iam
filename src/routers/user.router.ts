@@ -67,6 +67,30 @@ router.get('/', {
   },
 })
 
+router.get('/count', {
+  schema: {
+    querystring: Type.Object({
+      userId: Type.Optional(Type.String({ format: 'object-id' })),
+      permission: Type.Optional(Type.String()),
+      role: Type.Optional(Type.String()),
+      username: Type.Optional(Type.String()),
+      email: Type.Optional(Type.String({ format: 'email' })),
+      phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
+    }),
+  },
+  handler: async req => {
+    req.guardPermission(IAM_PERMISSION.GET_USERS)
+
+    const params = transform(req.query, {
+      userId: ObjectId.createFromHexString,
+      skip: Number,
+      limit: Number,
+    })
+
+    return userProvider.instance.countUsers(params)
+  },
+})
+
 router.get('/:userId', {
   schema: {
     params: Type.Object({
