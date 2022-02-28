@@ -40,7 +40,7 @@ router.post('/', {
 router.get('/', {
   schema: {
     querystring: Type.Object({
-      userId: Type.Optional(Type.String({ format: 'object-id' })),
+      _id: Type.Optional(Type.String({ format: 'object-id' })),
       permission: Type.Optional(Type.String()),
       role: Type.Optional(Type.String()),
       username: Type.Optional(Type.String()),
@@ -55,13 +55,13 @@ router.get('/', {
   handler: async req => {
     req.guardPermission(IAM_PERMISSION.GET_USERS)
 
-    const params = transform(req.query, {
-      userId: ObjectId.createFromHexString,
+    const filters = transform(req.query, {
+      _id: ObjectId.createFromHexString,
       skip: Number,
       limit: Number,
     })
 
-    return userProvider.instance.getUsers(params, {
+    return userProvider.instance.getUsers(filters, {
       sensitive: req.hasPermission(IAM_PERMISSION.SENSITIVE_ACCESS),
     })
   },
@@ -70,7 +70,7 @@ router.get('/', {
 router.get('/count', {
   schema: {
     querystring: Type.Object({
-      userId: Type.Optional(Type.String({ format: 'object-id' })),
+      _id: Type.Optional(Type.String({ format: 'object-id' })),
       permission: Type.Optional(Type.String()),
       role: Type.Optional(Type.String()),
       username: Type.Optional(Type.String()),
@@ -81,13 +81,13 @@ router.get('/count', {
   handler: async req => {
     req.guardPermission(IAM_PERMISSION.GET_USERS)
 
-    const params = transform(req.query, {
-      userId: ObjectId.createFromHexString,
+    const filters = transform(req.query, {
+      _id: ObjectId.createFromHexString,
       skip: Number,
       limit: Number,
     })
 
-    return userProvider.instance.countUsers(params)
+    return userProvider.instance.countUsers(filters)
   },
 })
 

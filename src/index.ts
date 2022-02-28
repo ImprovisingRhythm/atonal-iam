@@ -1,13 +1,14 @@
 import { useInstance, usePlugin } from 'atonal'
 import { useDB } from 'atonal-db'
 import { IAMConfigs } from './common/configs'
-import { CaptchaModel, SessionModel, UserModel } from './models'
+import { CaptchaModel, RelationModel, SessionModel, UserModel } from './models'
 import { rbacPlugin } from './plugins'
 import {
   AuthProvider,
   CaptchaProvider,
   OTPProvider,
   RBACProvider,
+  RelationProvider,
   SessionProvider,
   UserProvider,
 } from './providers'
@@ -26,7 +27,7 @@ export const useIAM = (configs: IAMConfigs) => {
     async (instance, _, next) => {
       await useDB({
         databases: configs.databases,
-        models: [CaptchaModel, SessionModel, UserModel],
+        models: [CaptchaModel, RelationModel, SessionModel, UserModel],
       })
 
       useInstance('IAM.configs', configs)
@@ -35,6 +36,7 @@ export const useIAM = (configs: IAMConfigs) => {
       useInstance('IAM.provider.captcha', new CaptchaProvider(configs))
       useInstance('IAM.provider.otp', new OTPProvider(configs))
       useInstance('IAM.provider.rbac', new RBACProvider(configs))
+      useInstance('IAM.provider.relation', new RelationProvider(configs))
       useInstance('IAM.provider.session', new SessionProvider(configs))
       useInstance('IAM.provider.user', new UserProvider(configs))
 

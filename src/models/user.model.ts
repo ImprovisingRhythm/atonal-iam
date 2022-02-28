@@ -35,7 +35,7 @@ export const UserModel = useCollection<User>({
     [{ username: 1 }, { unique: true, sparse: true }],
     [{ email: 1 }, { unique: true, sparse: true }],
     [{ phoneNumber: 1 }, { unique: true, sparse: true }],
-    { permissions: 1 },
-    { roles: 1 },
+    [{ permissions: 1 }],
+    [{ roles: 1 }],
   ],
 })

@@ -1,6 +1,6 @@
 import { Middleware, TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
-import { User, UserMeta, UserProfile } from '../models'
+import { Relation, User, UserMeta, UserProfile } from '../models'
 import { PermissionDef, RoleDef, UserState } from '../types'
 
 export interface IAMConfigs {
@@ -11,6 +11,9 @@ export interface IAMConfigs {
   schemas?: {
     user?: {
       profile?: TObject<{}>
+      meta?: TObject<{}>
+    }
+    relation?: {
       meta?: TObject<{}>
     }
   }
@@ -70,6 +73,9 @@ export interface IAMConfigs {
     onUserNationalIdUpdated?: (user: User) => Promise<void> | void
     onUserBlocked?: (user: User) => Promise<void> | void
     onUserUnblocked?: (user: User) => Promise<void> | void
+    onRelationsConnected?: (relations: Relation[]) => Promise<void> | void
+    onRelationsDisconnected?: (relations: Relation[]) => Promise<void> | void
+    onRelationMetaUpdated?: (relation: Relation) => Promise<void> | void
     onGetSession?: (state: UserState) => Promise<void> | void
     onSignIn?: (state: UserState) => Promise<void> | void
     onSignOut?: (state: UserState) => Promise<void> | void

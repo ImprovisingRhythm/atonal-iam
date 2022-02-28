@@ -83,14 +83,14 @@ export class UserProvider {
   }
 
   async countUsers({
-    userId,
+    _id,
     permission,
     role,
     username,
     email,
     phoneNumber,
   }: {
-    userId?: ObjectId
+    _id?: ObjectId
     permission?: string
     role?: string
     username?: string
@@ -99,7 +99,7 @@ export class UserProvider {
   }) {
     const count = await UserModel.countDocuments(
       ensureValues({
-        _id: userId,
+        _id,
         permissions: permission,
         roles: role,
         username,
@@ -113,7 +113,7 @@ export class UserProvider {
 
   async getUsers(
     {
-      userId,
+      _id,
       permission,
       role,
       username,
@@ -124,7 +124,7 @@ export class UserProvider {
       skip = 0,
       limit = 20,
     }: {
-      userId?: ObjectId
+      _id?: ObjectId
       permission?: string
       role?: string
       username?: string
@@ -139,7 +139,7 @@ export class UserProvider {
   ) {
     const users = await UserModel.find(
       ensureValues({
-        _id: userId,
+        _id,
         permissions: permission,
         roles: role,
         username,
