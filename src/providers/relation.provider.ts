@@ -20,19 +20,18 @@ export class RelationProvider {
     toUserId: ObjectId,
     { meta }: { meta?: RelationMeta } = {},
   ) {
-    const relation = await RelationModel.findOneAndUpdate(
-      {
+    const relation = await RelationModel.findOne({
+      from: fromUserId,
+      to: toUserId,
+    })
+
+    if (!relation) {
+      return RelationModel.create({
         from: fromUserId,
         to: toUserId,
-      },
-      { $set: { meta } },
-      {
-        upsert: true,
-        returnDocument: 'after',
-      },
-    )
-
-    assert(relation)
+        meta,
+      })
+    }
 
     return relation
   }
