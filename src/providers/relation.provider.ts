@@ -1,13 +1,21 @@
-import { BadRequest, ensureValues, NotFound, useInstance } from 'atonal'
+import assert from 'assert'
+import { BadRequest, ensureValues, useInstance } from 'atonal'
 import { ObjectId, usePopulateItem } from 'atonal-db'
 import { chain } from 'lodash'
 import { IAMConfigs } from '../common/configs'
 import { Relation, RelationMeta, RelationModel, UserModel } from '../models'
 
+export type RelationTarget =
+  | ObjectId
+  | {
+      fromUserId: ObjectId
+      toUserId: ObjectId
+    }
+
 export class RelationProvider {
   constructor(private configs: IAMConfigs) {}
 
-  async createRelation(
+  async ensureRelation(
     fromUserId: ObjectId,
     toUserId: ObjectId,
     { meta }: { meta?: RelationMeta } = {},
@@ -18,10 +26,15 @@ export class RelationProvider {
         to: toUserId,
       },
       { $set: { meta } },
-      { upsert: true },
+      {
+        upsert: true,
+        returnDocument: 'after',
+      },
     )
 
-    return relation!
+    assert(relation)
+
+    return relation
   }
 
   async makeConnection(userIds: ObjectId[]) {
@@ -189,32 +202,28 @@ export class RelationProvider {
     return relations
   }
 
-  async getRelation(relationId: ObjectId) {
-    const relation = await RelationModel.findById(relationId)
-
-    if (!relation) {
-      throw new NotFound('relation is not found')
-    }
-
-    return relation
-  }
-
-  async updateMeta(relationId: ObjectId, partial: Partial<RelationMeta>) {
+  async updateMeta(target: RelationTarget, partial: Partial<RelationMeta>) {
     const $set = ensureValues(
       chain(partial)
         .mapKeys((_, key) => `meta.${key}`)
         .value(),
     )
 
-    const relation = await RelationModel.findByIdAndUpdate(
-      relationId,
+    const relation = await RelationModel.findOneAndUpdate(
+      target instanceof ObjectId
+        ? { _id: target }
+        : {
+            from: target.fromUserId,
+            to: target.toUserId,
+          },
       { $set },
-      { returnDocument: 'after' },
+      {
+        upsert: true,
+        returnDocument: 'after',
+      },
     )
 
-    if (!relation) {
-      throw new NotFound('relation is not found')
-    }
+    assert(relation)
 
     await this.configs.hooks?.onRelationMetaUpdated?.(relation)
 

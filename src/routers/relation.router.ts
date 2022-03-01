@@ -39,7 +39,7 @@ router.post('/', {
       toUserId: ObjectId.createFromHexString,
     })
 
-    return relationProvider.instance.createRelation(fromUserId, toUserId, {
+    return relationProvider.instance.ensureRelation(fromUserId, toUserId, {
       meta,
     })
   },
