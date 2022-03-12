@@ -20,6 +20,10 @@ export class RelationProvider {
     toUserId: ObjectId,
     { meta }: { meta?: RelationMeta } = {},
   ) {
+    if (fromUserId.equals(toUserId)) {
+      throw new BadRequest('self-relation is not allowed')
+    }
+
     const relation = await RelationModel.findOne({
       from: fromUserId,
       to: toUserId,
@@ -112,6 +116,10 @@ export class RelationProvider {
       throw new BadRequest('can only pass 2 users')
     }
 
+    if (userIds[0].equals(userIds[1])) {
+      throw new BadRequest('self-relation is not allowed')
+    }
+
     const relations = await Promise.all([
       RelationModel.findOneAndUpdate(
         {
@@ -143,6 +151,10 @@ export class RelationProvider {
   async removeConnection(userIds: ObjectId[]) {
     if (userIds.length !== 2) {
       throw new BadRequest('can only pass 2 users')
+    }
+
+    if (userIds[0].equals(userIds[1])) {
+      throw new BadRequest('self-relation is not allowed')
     }
 
     const relations = await Promise.all([
@@ -178,6 +190,10 @@ export class RelationProvider {
       throw new BadRequest('can only pass 2 users')
     }
 
+    if (userIds[0].equals(userIds[1])) {
+      throw new BadRequest('self-relation is not allowed')
+    }
+
     return RelationModel.exists({
       from: userIds[0],
       to: userIds[1],
@@ -186,6 +202,10 @@ export class RelationProvider {
   }
 
   async addScore(fromUserId: ObjectId, toUserId: ObjectId, amount: number) {
+    if (fromUserId.equals(toUserId)) {
+      throw new BadRequest('self-relation is not allowed')
+    }
+
     const relation = await RelationModel.findOneAndUpdate(
       {
         from: fromUserId,
@@ -230,6 +250,10 @@ export class RelationProvider {
     toUserId: ObjectId,
     score: number,
   ) {
+    if (fromUserId.equals(toUserId)) {
+      throw new BadRequest('self-relation is not allowed')
+    }
+
     const relation = await RelationModel.findOneAndUpdate(
       {
         from: fromUserId,
@@ -276,6 +300,10 @@ export class RelationProvider {
     toUserId: ObjectId,
     partial: Partial<RelationMeta>,
   ) {
+    if (fromUserId.equals(toUserId)) {
+      throw new BadRequest('self-relation is not allowed')
+    }
+
     const $set = ensureValues(
       chain(partial)
         .mapKeys((_, key) => `meta.${key}`)
