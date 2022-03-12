@@ -2,6 +2,7 @@ import { useRouter } from 'atonal'
 import authRouter from './auth.router'
 import captchaRouter from './captcha.router'
 import otpRouter from './otp.router'
+import privacyRouter from './privacy.router'
 import rbacRouter from './rbac.router'
 import relationRouter from './relation.router'
 import sessionRouter from './session.router'
@@ -12,6 +13,7 @@ const router = useRouter()
 router.use('/auth', authRouter)
 router.use('/captcha', captchaRouter)
 router.use('/otp', otpRouter)
+router.use('/privacy', privacyRouter)
 router.use('/rbac', rbacRouter)
 router.use('/relations', relationRouter)
 router.use('/session', sessionRouter)

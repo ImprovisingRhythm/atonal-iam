@@ -48,58 +48,79 @@ router.post('/', {
 router.get('/', {
   schema: {
     querystring: Type.Object({
-      entire: Type.Optional(Type.String({ format: 'boolean' })),
       fromUserId: Type.Optional(Type.String({ format: 'object-id' })),
       toUserId: Type.Optional(Type.String({ format: 'object-id' })),
       connected: Type.Optional(Type.String({ format: 'boolean' })),
-      sortBy: Type.Optional(Type.Literal(['_id', 'createdAt', 'updatedAt'])),
+      score: Type.Optional(Type.String({ format: 'number' })),
+      customFilters: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+      populate: Type.Optional(Type.String({ format: 'boolean' })),
+      sortBy: Type.Optional(
+        Type.Literal(['_id', 'createdAt', 'updatedAt', 'score']),
+      ),
       orderBy: Type.Optional(Type.Literal(['asc', 'desc'])),
       skip: Type.Optional(Type.String({ format: 'integer' })),
       limit: Type.Optional(Type.String({ format: 'integer' })),
     }),
   },
   handler: async req => {
-    const { user } = req.state
-    const { entire, ...filters } = transform(req.query, {
-      entire: Boolean,
+    req.hasPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+
+    const { populate, ...filters } = transform(req.query, {
       fromUserId: ObjectId.createFromHexString,
       toUserId: ObjectId.createFromHexString,
       connected: Boolean,
+      score: Number,
+      populate: Boolean,
       skip: Number,
       limit: Number,
     })
 
-    if (!entire || !req.hasPermission(IAM_PERMISSION.MANAGE_RELATIONS)) {
-      Object.assign(filters, { fromUserId: user._id })
-    }
-
-    return relationProvider.instance.getRelations(filters, { populate: true })
+    return relationProvider.instance.getRelations(filters, { populate })
   },
 })
 
 router.get('/count', {
   schema: {
     querystring: Type.Object({
-      entire: Type.Optional(Type.String({ format: 'boolean' })),
       fromUserId: Type.Optional(Type.String({ format: 'object-id' })),
       toUserId: Type.Optional(Type.String({ format: 'object-id' })),
       connected: Type.Optional(Type.String({ format: 'boolean' })),
+      score: Type.Optional(Type.String({ format: 'number' })),
+      customFilters: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
     }),
   },
   handler: async req => {
-    const { user } = req.state
-    const { entire, ...filters } = transform(req.query, {
-      entire: Boolean,
+    req.hasPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+
+    const filters = transform(req.query, {
       fromUserId: ObjectId.createFromHexString,
       toUserId: ObjectId.createFromHexString,
       connected: Boolean,
+      score: Number,
     })
 
-    if (!entire || !req.hasPermission(IAM_PERMISSION.MANAGE_RELATIONS)) {
-      Object.assign(filters, { opUserId: user._id })
-    }
-
     return relationProvider.instance.countRelations(filters)
+  },
+})
+
+router.put('/:relationId/score', {
+  schema: () => ({
+    params: Type.Object({
+      relationId: Type.String({ format: 'object-id' }),
+    }),
+    body: Type.Object({
+      score: Type.Number(),
+    }),
+  }),
+  handler: async req => {
+    req.guardPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+
+    const { score } = req.body
+    const { relationId } = transform(req.params, {
+      relationId: ObjectId.createFromHexString,
+    })
+
+    return relationProvider.instance.updateScoreById(relationId, score)
   },
 })
 
@@ -119,7 +140,7 @@ router.patch('/:relationId/meta', {
       relationId: ObjectId.createFromHexString,
     })
 
-    return relationProvider.instance.updateMeta(relationId, req.body)
+    return relationProvider.instance.updateMetaById(relationId, req.body)
   },
 })
 

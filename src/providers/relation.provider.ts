@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { BadRequest, ensureValues, useInstance } from 'atonal'
+import { BadRequest, ensureValues, NotFound, useInstance } from 'atonal'
 import { ObjectId, usePopulateItem } from 'atonal-db'
 import { chain } from 'lodash'
 import { IAMConfigs } from '../common/configs'
@@ -36,123 +36,26 @@ export class RelationProvider {
     return relation
   }
 
-  async makeConnection(userIds: ObjectId[]) {
-    if (userIds.length !== 2) {
-      throw new BadRequest('can only pass 2 users')
-    }
-
-    const relations = await Promise.all([
-      RelationModel.findOneAndUpdate(
-        {
-          from: userIds[0],
-          to: userIds[1],
-        },
-        {
-          $set: {
-            connected: true,
-          },
-          $inc: {
-            score: 100,
-          },
-        },
-        { upsert: true },
-      ),
-      RelationModel.findOneAndUpdate(
-        {
-          from: userIds[1],
-          to: userIds[0],
-        },
-        {
-          $set: {
-            connected: true,
-          },
-          $inc: {
-            score: 100,
-          },
-        },
-        { upsert: true },
-      ),
-    ])
-
-    await this.configs.hooks?.onRelationsConnected?.(relations as Relation[])
-
-    return { success: true }
-  }
-
-  async removeConnection(userIds: ObjectId[]) {
-    if (userIds.length !== 2) {
-      throw new BadRequest('can only pass 2 users')
-    }
-
-    const relations = await Promise.all([
-      RelationModel.findOneAndUpdate(
-        {
-          from: userIds[0],
-          to: userIds[1],
-        },
-        {
-          $unset: {
-            connected: true,
-          },
-          $inc: {
-            score: -100,
-          },
-        },
-        { upsert: true },
-      ),
-      RelationModel.findOneAndUpdate(
-        {
-          from: userIds[1],
-          to: userIds[0],
-        },
-        {
-          $unset: {
-            connected: true,
-          },
-          $inc: {
-            score: -100,
-          },
-        },
-        { upsert: true },
-      ),
-    ])
-
-    await this.configs.hooks?.onRelationsDisconnected?.(relations as Relation[])
-
-    return { success: true }
-  }
-
-  async hasConnection(userIds: ObjectId[]) {
-    if (userIds.length !== 2) {
-      throw new BadRequest('can only pass 2 users')
-    }
-
-    return RelationModel.exists({
-      $or: [
-        {
-          from: userIds[0],
-          to: userIds[1],
-        },
-        {
-          from: userIds[1],
-          to: userIds[0],
-        },
-      ],
-      connected: true,
-    })
-  }
-
   async countRelations({
-    opUserId,
+    fromUserId,
+    toUserId,
     connected,
+    score,
+    customFilters,
   }: {
-    opUserId?: ObjectId
+    fromUserId?: ObjectId
+    toUserId?: ObjectId
     connected?: boolean
+    score?: number
+    customFilters?: Record<string, unknown>
   }) {
     const count = await RelationModel.countDocuments(
       ensureValues({
-        from: opUserId,
+        from: fromUserId,
+        to: toUserId,
         connected,
+        ...(score && { score: { $gte: score } }),
+        ...customFilters,
       }),
     )
 
@@ -164,6 +67,7 @@ export class RelationProvider {
       fromUserId,
       toUserId,
       connected,
+      score,
       customFilters,
       sortBy = 'createdAt',
       orderBy = 'asc',
@@ -173,8 +77,9 @@ export class RelationProvider {
       fromUserId?: ObjectId
       toUserId?: ObjectId
       connected?: boolean
+      score?: number
       customFilters?: Record<string, unknown>
-      sortBy?: '_id' | 'createdAt' | 'updatedAt'
+      sortBy?: '_id' | 'createdAt' | 'updatedAt' | 'score'
       orderBy?: 'asc' | 'desc'
       skip?: number
       limit?: number
@@ -186,6 +91,7 @@ export class RelationProvider {
         from: fromUserId,
         to: toUserId,
         connected,
+        ...(score && { score: { $gte: score } }),
         ...customFilters,
       }),
     )
@@ -201,7 +107,175 @@ export class RelationProvider {
     return relations
   }
 
-  async updateMeta(target: RelationTarget, partial: Partial<RelationMeta>) {
+  async addConnection(userIds: ObjectId[]) {
+    if (userIds.length !== 2) {
+      throw new BadRequest('can only pass 2 users')
+    }
+
+    const relations = await Promise.all([
+      RelationModel.findOneAndUpdate(
+        {
+          from: userIds[0],
+          to: userIds[1],
+        },
+        { $set: { connected: true } },
+        { upsert: true },
+      ),
+      RelationModel.findOneAndUpdate(
+        {
+          from: userIds[1],
+          to: userIds[0],
+        },
+        { $set: { connected: true } },
+        { upsert: true },
+      ),
+    ])
+
+    assert(relations[0])
+    assert(relations[1])
+
+    await this.configs.hooks?.onRelationUpdated?.(relations[0])
+    await this.configs.hooks?.onRelationUpdated?.(relations[1])
+
+    return { success: true }
+  }
+
+  async removeConnection(userIds: ObjectId[]) {
+    if (userIds.length !== 2) {
+      throw new BadRequest('can only pass 2 users')
+    }
+
+    const relations = await Promise.all([
+      RelationModel.findOneAndUpdate(
+        {
+          from: userIds[0],
+          to: userIds[1],
+        },
+        { $unset: { connected: true } },
+        { upsert: true },
+      ),
+      RelationModel.findOneAndUpdate(
+        {
+          from: userIds[1],
+          to: userIds[0],
+        },
+        { $unset: { connected: true } },
+        { upsert: true },
+      ),
+    ])
+
+    assert(relations[0])
+    assert(relations[1])
+
+    await this.configs.hooks?.onRelationUpdated?.(relations[0])
+    await this.configs.hooks?.onRelationUpdated?.(relations[1])
+
+    return { success: true }
+  }
+
+  async hasConnection(userIds: ObjectId[]) {
+    if (userIds.length !== 2) {
+      throw new BadRequest('can only pass 2 users')
+    }
+
+    return RelationModel.exists({
+      from: userIds[0],
+      to: userIds[1],
+      connected: true,
+    })
+  }
+
+  async addScore(fromUserId: ObjectId, toUserId: ObjectId, amount: number) {
+    const relation = await RelationModel.findOneAndUpdate(
+      {
+        from: fromUserId,
+        to: toUserId,
+      },
+      {
+        $inc: {
+          score: amount,
+        },
+      },
+      {
+        upsert: true,
+        returnDocument: 'after',
+      },
+    )
+
+    assert(relation)
+
+    await this.configs.hooks?.onRelationUpdated?.(relation)
+
+    return relation
+  }
+
+  async updateScoreById(relationId: ObjectId, score: number) {
+    const relation = await RelationModel.findByIdAndUpdate(
+      relationId,
+      { $set: { score } },
+      { returnDocument: 'after' },
+    )
+
+    if (!relation) {
+      throw new NotFound('relation is not found')
+    }
+
+    await this.configs.hooks?.onRelationUpdated?.(relation)
+
+    return relation
+  }
+
+  async updateScoreByTarget(
+    fromUserId: ObjectId,
+    toUserId: ObjectId,
+    score: number,
+  ) {
+    const relation = await RelationModel.findOneAndUpdate(
+      {
+        from: fromUserId,
+        to: toUserId,
+      },
+      { $set: { score } },
+      {
+        upsert: true,
+        returnDocument: 'after',
+      },
+    )
+
+    assert(relation)
+
+    await this.configs.hooks?.onRelationUpdated?.(relation)
+
+    return relation
+  }
+
+  async updateMetaById(relationId: ObjectId, partial: Partial<RelationMeta>) {
+    const $set = ensureValues(
+      chain(partial)
+        .mapKeys((_, key) => `meta.${key}`)
+        .value(),
+    )
+
+    const relation = await RelationModel.findByIdAndUpdate(
+      relationId,
+      { $set },
+      { returnDocument: 'after' },
+    )
+
+    if (!relation) {
+      throw new NotFound('relation is not found')
+    }
+
+    await this.configs.hooks?.onRelationUpdated?.(relation)
+
+    return relation.meta ?? {}
+  }
+
+  async updateMetaByTarget(
+    fromUserId: ObjectId,
+    toUserId: ObjectId,
+    partial: Partial<Relation>,
+  ) {
     const $set = ensureValues(
       chain(partial)
         .mapKeys((_, key) => `meta.${key}`)
@@ -209,12 +283,10 @@ export class RelationProvider {
     )
 
     const relation = await RelationModel.findOneAndUpdate(
-      target instanceof ObjectId
-        ? { _id: target }
-        : {
-            from: target.fromUserId,
-            to: target.toUserId,
-          },
+      {
+        from: fromUserId,
+        to: toUserId,
+      },
       { $set },
       {
         upsert: true,
@@ -224,9 +296,9 @@ export class RelationProvider {
 
     assert(relation)
 
-    await this.configs.hooks?.onRelationMetaUpdated?.(relation)
+    await this.configs.hooks?.onRelationUpdated?.(relation)
 
-    return relation.meta ?? {}
+    return relation
   }
 
   async populateRelations(relations: Relation[]) {

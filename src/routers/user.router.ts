@@ -3,9 +3,10 @@ import { ObjectId } from 'atonal-db'
 import { useConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
 import { keyGuard, userGuard } from '../middlewares'
-import { useUserProvider } from '../providers'
+import { useRelationProvider, useUserProvider } from '../providers'
 
 const configs = useConfigs()
+const relationProvider = useRelationProvider()
 const userProvider = useUserProvider()
 
 const DefaultUserProfileSchema = Type.Object({})
@@ -276,6 +277,24 @@ router.post('/:userId/unblock', {
     })
 
     return userProvider.instance.unblockUser(userId)
+  },
+})
+
+router.get('/:userId/relation', {
+  schema: {
+    params: Type.Object({
+      userId: Type.String({ format: 'object-id' }),
+    }),
+  },
+  handler: async req => {
+    req.guardPermission(IAM_PERMISSION.GET_USERS)
+
+    const { user } = req.state
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
+
+    return relationProvider.instance.ensureRelation(user._id, userId)
   },
 })
 

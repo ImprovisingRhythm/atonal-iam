@@ -73,9 +73,8 @@ export interface IAMConfigs {
     onUserNationalIdUpdated?: (user: User) => Promise<void> | void
     onUserBlocked?: (user: User) => Promise<void> | void
     onUserUnblocked?: (user: User) => Promise<void> | void
-    onRelationsConnected?: (relations: Relation[]) => Promise<void> | void
-    onRelationsDisconnected?: (relations: Relation[]) => Promise<void> | void
-    onRelationMetaUpdated?: (relation: Relation) => Promise<void> | void
+    onUserDeleted?: (user: User) => Promise<void> | void
+    onRelationUpdated?: (relation: Relation) => Promise<void> | void
     onGetSession?: (state: UserState) => Promise<void> | void
     onSignIn?: (state: UserState) => Promise<void> | void
     onSignOut?: (state: UserState) => Promise<void> | void

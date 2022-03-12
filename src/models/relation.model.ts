@@ -6,6 +6,7 @@ export interface Relation extends BaseModel {
   from: Ref<User>
   to: Ref<User>
   connected?: boolean
+  score?: number
   meta?: RelationMeta
 }
 
@@ -17,5 +18,6 @@ export const RelationModel = useCollection<Relation>({
     [{ from: 1 }],
     [{ to: 1 }],
     [{ connected: 1 }],
+    [{ score: 1 }],
   ],
 })
