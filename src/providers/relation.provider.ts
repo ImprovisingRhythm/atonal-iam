@@ -222,7 +222,7 @@ export class RelationProvider {
 
     await this.configs.hooks?.onRelationUpdated?.(relation)
 
-    return relation
+    return { score }
   }
 
   async updateScoreByTarget(
@@ -246,7 +246,7 @@ export class RelationProvider {
 
     await this.configs.hooks?.onRelationUpdated?.(relation)
 
-    return relation
+    return { score }
   }
 
   async updateMetaById(relationId: ObjectId, partial: Partial<RelationMeta>) {
@@ -274,7 +274,7 @@ export class RelationProvider {
   async updateMetaByTarget(
     fromUserId: ObjectId,
     toUserId: ObjectId,
-    partial: Partial<Relation>,
+    partial: Partial<RelationMeta>,
   ) {
     const $set = ensureValues(
       chain(partial)
@@ -298,7 +298,7 @@ export class RelationProvider {
 
     await this.configs.hooks?.onRelationUpdated?.(relation)
 
-    return relation
+    return relation.meta ?? {}
   }
 
   async populateRelations(relations: Relation[]) {
