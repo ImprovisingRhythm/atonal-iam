@@ -32,12 +32,15 @@ router.post('/', {
     }),
   }),
   handler: async req => {
-    req.guardPermission(IAM_PERMISSION.MANAGE_RELATIONS)
-
+    const { user } = req.state
     const { fromUserId, toUserId, meta } = transform(req.body, {
       fromUserId: ObjectId.createFromHexString,
       toUserId: ObjectId.createFromHexString,
     })
+
+    if (fromUserId.equals(user._id)) {
+      req.guardPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+    }
 
     return relationProvider.instance.ensureRelation(fromUserId, toUserId, {
       meta,
@@ -63,8 +66,7 @@ router.get('/', {
     }),
   },
   handler: async req => {
-    req.hasPermission(IAM_PERMISSION.MANAGE_RELATIONS)
-
+    const { user } = req.state
     const { populate, ...filters } = transform(req.query, {
       fromUserId: ObjectId.createFromHexString,
       toUserId: ObjectId.createFromHexString,
@@ -74,6 +76,10 @@ router.get('/', {
       skip: Number,
       limit: Number,
     })
+
+    if (!filters.fromUserId || filters.fromUserId.equals(user._id)) {
+      req.guardPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+    }
 
     return relationProvider.instance.getRelations(filters, { populate })
   },
@@ -90,7 +96,7 @@ router.get('/count', {
     }),
   },
   handler: async req => {
-    req.hasPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+    const { user } = req.state
 
     const filters = transform(req.query, {
       fromUserId: ObjectId.createFromHexString,
@@ -98,6 +104,10 @@ router.get('/count', {
       connected: Boolean,
       score: Number,
     })
+
+    if (!filters.fromUserId || filters.fromUserId.equals(user._id)) {
+      req.guardPermission(IAM_PERMISSION.MANAGE_RELATIONS)
+    }
 
     return relationProvider.instance.countRelations(filters)
   },
