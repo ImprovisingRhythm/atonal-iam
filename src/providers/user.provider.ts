@@ -7,7 +7,7 @@ import {
   randomString,
   useInstance,
 } from 'atonal'
-import { Index, ObjectId } from 'atonal-db'
+import { ObjectId } from 'atonal-db'
 import { chain } from 'lodash'
 import { IAMConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
@@ -336,10 +336,6 @@ export class UserProvider {
     }
 
     return user
-  }
-
-  async createIndex(index: Index<User>) {
-    await UserModel.createIndex(index)
   }
 }
 
