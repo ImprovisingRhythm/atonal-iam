@@ -68,6 +68,7 @@ export interface IAMConfigs {
     onUserProfileUpdated?: (user: User) => Promise<void> | void
     onUserDataUpdated?: (user: User) => Promise<void> | void
     onUserNationalIdUpdated?: (user: User) => Promise<void> | void
+    onUserLocationUpdated?: (user: User) => Promise<void> | void
     onUserBlocked?: (user: User) => Promise<void> | void
     onUserUnblocked?: (user: User) => Promise<void> | void
     onUserDeleted?: (user: User) => Promise<void> | void

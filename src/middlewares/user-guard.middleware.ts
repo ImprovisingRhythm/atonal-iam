@@ -4,7 +4,8 @@ import { useAuthProvider } from '../providers'
 const authProvider = useAuthProvider()
 
 export const userGuard = useMiddleware(async req => {
-  const authorization = req.headers.authorization
+  const { authorization } = req.headers
+
   const [method, token] = (authorization ?? '').split(' ')
 
   if (method === 'Bearer' && token) {

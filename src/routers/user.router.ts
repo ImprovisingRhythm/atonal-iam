@@ -203,6 +203,42 @@ router.patch('/:userId/national-id', {
   },
 })
 
+router.patch('/:userId/location', {
+  schema: () => ({
+    params: Type.Object({
+      userId: Type.String({ format: 'object-id' }),
+    }),
+    body: Type.Object({
+      point: Type.Optional(
+        Type.Object({
+          type: Type.Literal('Point'),
+          coordinates: Type.Tuple([Type.Number(), Type.Number()]),
+        }),
+      ),
+      ip: Type.Optional(
+        Type.Union([
+          Type.String({ format: 'ipv4' }),
+          Type.String({ format: 'ipv6' }),
+        ]),
+      ),
+      country: Type.Optional(Type.String()),
+      region: Type.Optional(Type.String()),
+    }),
+  }),
+  handler: async req => {
+    req.guardAllPermissions([
+      IAM_PERMISSION.UPDATE_USERS,
+      IAM_PERMISSION.SENSITIVE_ACCESS,
+    ])
+
+    const { userId } = transform(req.params, {
+      userId: ObjectId.createFromHexString,
+    })
+
+    return userProvider.instance.updateLocation(userId, req.body)
+  },
+})
+
 router.put('/:userId/permissions', {
   schema: {
     params: Type.Object({

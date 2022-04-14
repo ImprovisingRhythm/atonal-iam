@@ -7,6 +7,16 @@ export interface UserNationalId {
   verified?: boolean
 }
 
+export interface UserLocation {
+  point?: {
+    type: 'Point'
+    coordinates: [number, number]
+  }
+  ip?: string
+  country?: string
+  region?: string
+}
+
 export interface UserProfile {}
 export interface UserData {}
 
@@ -25,6 +35,7 @@ export interface User extends BaseModel, Timestamps {
   profile?: UserProfile
   data?: UserData
   nationalId?: UserNationalId
+  location?: UserLocation
 }
 
 export const UserModel = useCollection<User>({
@@ -37,5 +48,6 @@ export const UserModel = useCollection<User>({
     [{ phoneNumber: 1 }, { unique: true, sparse: true }],
     [{ permissions: 1 }],
     [{ roles: 1 }],
+    [{ 'location.point': '2dsphere' }],
   ],
 })

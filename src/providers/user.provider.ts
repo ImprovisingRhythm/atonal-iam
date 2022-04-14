@@ -14,6 +14,7 @@ import { IAM_PERMISSION } from '../common/constants'
 import {
   User,
   UserData,
+  UserLocation,
   UserModel,
   UserNationalId,
   UserProfile,
@@ -276,6 +277,28 @@ export class UserProvider {
     await this.configs.hooks?.onUserNationalIdUpdated?.(user)
 
     return user.nationalId ?? {}
+  }
+
+  async updateLocation(userId: ObjectId, partial: Partial<UserLocation>) {
+    const $set = ensureValues(
+      chain(partial)
+        .mapKeys((_, key) => `location.${key}`)
+        .value(),
+    )
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set },
+      { returnDocument: 'after' },
+    )
+
+    if (!user) {
+      throw new NotFound('user is not found')
+    }
+
+    await this.configs.hooks?.onUserLocationUpdated?.(user)
+
+    return user.location ?? {}
   }
 
   async updatePermissions(userId: ObjectId, permissions: string[]) {

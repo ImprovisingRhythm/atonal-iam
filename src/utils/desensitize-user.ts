@@ -10,21 +10,24 @@ export const desensitizeUser = (user: User, mode: DesensitizeMode = 'mask') => {
   delete user.secret
 
   if (mode === 'delete') {
-    delete user.nationalId
     delete user.email
     delete user.phoneNumber
     delete user.data
 
-    return user
-  }
-
-  // Mask id card number
-  if (user.nationalId) {
-    const { idCardNumber } = user.nationalId
-
-    if (idCardNumber) {
-      user.nationalId.idCardNumber = maskIdCardNumber(idCardNumber)
+    // Delete sensitive national id info
+    if (user.nationalId) {
+      delete user.nationalId.idCardType
+      delete user.nationalId.idCardNumber
+      delete user.nationalId.name
     }
+
+    // Delete sensitive location info
+    if (user.location) {
+      delete user.location.point
+      delete user.location.ip
+    }
+
+    return user
   }
 
   // Mask email address
@@ -35,6 +38,15 @@ export const desensitizeUser = (user: User, mode: DesensitizeMode = 'mask') => {
   // Mask phone number
   if (user.phoneNumber) {
     user.phoneNumber = maskPhoneNumber(user.phoneNumber)
+  }
+
+  // Mask id card number
+  if (user.nationalId) {
+    const { idCardNumber } = user.nationalId
+
+    if (idCardNumber) {
+      user.nationalId.idCardNumber = maskIdCardNumber(idCardNumber)
+    }
   }
 
   return user
