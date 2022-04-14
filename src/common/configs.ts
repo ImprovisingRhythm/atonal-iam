@@ -45,7 +45,7 @@ export interface IAMConfigs {
       expiresIn: string
       sendCode?: (phoneNumber: string, code: string) => Promise<void>
     }
-    token: {
+    ticket: {
       len: number
       expiresIn: string
     }

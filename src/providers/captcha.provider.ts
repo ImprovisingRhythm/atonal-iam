@@ -98,7 +98,7 @@ export class CaptchaProvider {
       throw new PreconditionFailed('invalid code')
     }
 
-    return this.generateToken(`email:${email}`)
+    return this.generateTicket(`email:${email}`)
   }
 
   async verifySmsCode(phoneNumber: string, code: string) {
@@ -108,7 +108,7 @@ export class CaptchaProvider {
       throw new PreconditionFailed('invalid code')
     }
 
-    return this.generateToken(`sms:${phoneNumber}`)
+    return this.generateTicket(`sms:${phoneNumber}`)
   }
 
   async verify2FACode(userId: ObjectId, code: string) {
@@ -118,7 +118,7 @@ export class CaptchaProvider {
       throw new PreconditionFailed('invalid code')
     }
 
-    return this.generateToken(`uid:${userId}`)
+    return this.generateTicket(`uid:${userId}`)
   }
 
   async verifyTicket(ticket: string, identifier: string) {
@@ -131,8 +131,8 @@ export class CaptchaProvider {
     await CaptchaModel.ticket.remove(ticket)
   }
 
-  private async generateToken(identifier: string) {
-    const { len, expiresIn } = this.configs.captcha.token
+  private async generateTicket(identifier: string) {
+    const { len, expiresIn } = this.configs.captcha.ticket
     const ticket = randomString(len, 'all')
 
     await CaptchaModel.ticket.set(ticket, identifier, expiresIn)
