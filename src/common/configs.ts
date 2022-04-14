@@ -1,20 +1,17 @@
 import { Middleware, TObject, useInstance } from 'atonal'
 import { MongoConfig, RedisConfig } from 'atonal-db'
-import { Relation, User, UserMeta, UserProfile } from '../models'
+import { User, UserData, UserProfile } from '../models'
 import { PermissionDef, RoleDef, UserState } from '../types'
 
 export interface IAMConfigs {
   databases: {
-    mongodb: MongoConfig
+    mongo: MongoConfig
     redis: RedisConfig
   }
   schemas?: {
     user?: {
       profile?: TObject<{}>
-      meta?: TObject<{}>
-    }
-    relation?: {
-      meta?: TObject<{}>
+      data?: TObject<{}>
     }
   }
   auth: {
@@ -62,19 +59,18 @@ export interface IAMConfigs {
       permissions?: string[]
       roles?: string[]
       profile?: UserProfile
-      meta?: UserMeta
+      data?: UserData
     }
   }
   hooks?: {
     onUserCreated?: (user: User) => Promise<void> | void
     onUserPermissionUpdated?: (user: User) => Promise<void> | void
     onUserProfileUpdated?: (user: User) => Promise<void> | void
-    onUserMetaUpdated?: (user: User) => Promise<void> | void
+    onUserDataUpdated?: (user: User) => Promise<void> | void
     onUserNationalIdUpdated?: (user: User) => Promise<void> | void
     onUserBlocked?: (user: User) => Promise<void> | void
     onUserUnblocked?: (user: User) => Promise<void> | void
     onUserDeleted?: (user: User) => Promise<void> | void
-    onRelationUpdated?: (relation: Relation) => Promise<void> | void
     onGetSession?: (state: UserState) => Promise<void> | void
     onSignIn?: (state: UserState) => Promise<void> | void
     onSignOut?: (state: UserState) => Promise<void> | void

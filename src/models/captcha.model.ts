@@ -13,8 +13,8 @@ export const CaptchaModel = useMultiModel({
     name: 'captcha:sms',
     type: 'string',
   }),
-  token: useKV({
-    name: 'captcha:token',
+  ticket: useKV({
+    name: 'captcha:ticket',
     type: 'string',
   }),
 })

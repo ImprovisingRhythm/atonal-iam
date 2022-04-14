@@ -15,28 +15,28 @@ const router = useRouter({
 router.get('/uri', {
   schema: {
     querystring: Type.Object({
-      token: Type.String(),
+      ticket: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { token } = req.query
+    const { ticket } = req.query
 
-    return otpProvider.instance.getKeyUri(user._id, token)
+    return otpProvider.instance.getKeyUri(user._id, ticket)
   },
 })
 
 router.post('/generate-secret', {
   schema: {
     querystring: Type.Object({
-      token: Type.String(),
+      ticket: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { token } = req.query
+    const { ticket } = req.query
 
-    return otpProvider.instance.generateSecret(user._id, token)
+    return otpProvider.instance.generateSecret(user._id, ticket)
   },
 })
 

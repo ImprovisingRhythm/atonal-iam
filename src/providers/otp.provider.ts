@@ -12,8 +12,8 @@ const userProvider = useInstance<UserProvider>('IAM.provider.user')
 export class OTPProvider {
   constructor(private configs: IAMConfigs) {}
 
-  async generateSecret(userId: ObjectId, token: string) {
-    await captchaProvider.instance.verifyToken(token, `uid:${userId}`)
+  async generateSecret(userId: ObjectId, ticket: string) {
+    await captchaProvider.instance.verifyTicket(ticket, `uid:${userId}`)
 
     const secret = new Secret().base32
 
@@ -22,8 +22,8 @@ export class OTPProvider {
     return { secret }
   }
 
-  async getKeyUri(userId: ObjectId, token: string) {
-    await captchaProvider.instance.verifyToken(token, `uid:${userId}`)
+  async getKeyUri(userId: ObjectId, ticket: string) {
+    await captchaProvider.instance.verifyTicket(ticket, `uid:${userId}`)
 
     const user = await userProvider.instance.getRawUserBy({ _id: userId })
 

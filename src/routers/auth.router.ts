@@ -49,11 +49,11 @@ router.post('/sign-in', {
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
       password: Type.Optional(Type.String()),
-      token: Type.Optional(Type.String()),
+      ticket: Type.Optional(Type.String()),
     }),
   },
   handler: async req => {
-    const { type, username, email, phoneNumber, password, token } = req.body
+    const { type, username, email, phoneNumber, password, ticket } = req.body
 
     if (type === 'username') {
       if (!username || !password) {
@@ -73,7 +73,7 @@ router.post('/sign-in', {
 
     if (type === 'phoneNumber') {
       if (!phoneNumber) {
-        throw new BadRequest('must include [phone]')
+        throw new BadRequest('must include [phoneNumber]')
       }
 
       if (password) {
@@ -83,14 +83,14 @@ router.post('/sign-in', {
         )
       }
 
-      if (token) {
+      if (ticket) {
         return authProvider.instance.signInWithPhoneNumberAndToken(
           phoneNumber,
-          token,
+          ticket,
         )
       }
 
-      throw new BadRequest('must include [password] or [token]')
+      throw new BadRequest('must include [password] or [ticket]')
     }
 
     throw new BadRequest('unknown [type]')
@@ -112,12 +112,12 @@ router.post('/sign-up', {
       username: Type.Optional(Type.String()),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-      token: Type.Optional(Type.String()),
+      ticket: Type.Optional(Type.String()),
       password: Type.Optional(Type.String()),
     }),
   },
   handler: async req => {
-    const { type, username, email, phoneNumber, token, password } = req.body
+    const { type, username, email, phoneNumber, ticket, password } = req.body
 
     if (type === 'username') {
       if (!username || !password) {
@@ -136,13 +136,13 @@ router.post('/sign-up', {
     }
 
     if (type === 'phoneNumber') {
-      if (!phoneNumber || !token) {
-        throw new BadRequest('must include [phone] and [token]')
+      if (!phoneNumber || !ticket) {
+        throw new BadRequest('must include [phoneNumber] and [ticket]')
       }
 
       return authProvider.instance.signUpWithPhoneNumber(
         phoneNumber,
-        token,
+        ticket,
         password,
       )
     }
@@ -192,14 +192,14 @@ router.post('/bind-email', {
   schema: {
     body: Type.Object({
       email: Type.String({ format: 'email' }),
-      token: Type.String(),
+      ticket: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { email, token } = req.body
+    const { email, ticket } = req.body
 
-    return authProvider.instance.bindEmail(user._id, email, token)
+    return authProvider.instance.bindEmail(user._id, email, ticket)
   },
 })
 
@@ -216,14 +216,14 @@ router.post('/bind-phone-number', {
   schema: {
     body: Type.Object({
       phoneNumber: Type.String({ format: 'phone-number' }),
-      token: Type.String(),
+      ticket: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { phoneNumber, token } = req.body
+    const { phoneNumber, ticket } = req.body
 
-    return authProvider.instance.bindPhoneNumber(user._id, phoneNumber, token)
+    return authProvider.instance.bindPhoneNumber(user._id, phoneNumber, ticket)
   },
 })
 
@@ -263,30 +263,30 @@ router.post('/reset-password', {
       type: Type.Literal(['email', 'phoneNumber']),
       email: Type.Optional(Type.String({ format: 'email' })),
       phoneNumber: Type.Optional(Type.String({ format: 'phone-number' })),
-      token: Type.String(),
+      ticket: Type.String(),
       password: Type.String(),
     }),
   },
   handler: async req => {
-    const { type, email, phoneNumber, token, password } = req.body
+    const { type, email, phoneNumber, ticket, password } = req.body
 
     if (type === 'email') {
       if (!email) {
         throw new BadRequest('must include [email]')
       }
 
-      return authProvider.instance.resetPasswordByEmail(email, password, token)
+      return authProvider.instance.resetPasswordByEmail(email, password, ticket)
     }
 
     if (type === 'phoneNumber') {
       if (!phoneNumber) {
-        throw new BadRequest('must include [phone]')
+        throw new BadRequest('must include [phoneNumber]')
       }
 
       return authProvider.instance.resetPasswordByPhoneNumber(
         phoneNumber,
         password,
-        token,
+        ticket,
       )
     }
 

@@ -121,23 +121,23 @@ export class CaptchaProvider {
     return this.generateToken(`uid:${userId}`)
   }
 
-  async verifyToken(token: string, identifier: string) {
-    const payload = await CaptchaModel.token.get(token)
+  async verifyTicket(ticket: string, identifier: string) {
+    const payload = await CaptchaModel.ticket.get(ticket)
 
     if (payload !== identifier) {
       throw new PreconditionFailed('invalid token')
     }
 
-    await CaptchaModel.token.remove(token)
+    await CaptchaModel.ticket.remove(ticket)
   }
 
   private async generateToken(identifier: string) {
     const { len, expiresIn } = this.configs.captcha.token
-    const token = randomString(len, 'all')
+    const ticket = randomString(len, 'all')
 
-    await CaptchaModel.token.set(token, identifier, expiresIn)
+    await CaptchaModel.ticket.set(ticket, identifier, expiresIn)
 
-    return { token }
+    return { ticket }
   }
 }
 

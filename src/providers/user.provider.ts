@@ -13,7 +13,7 @@ import { IAMConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
 import {
   User,
-  UserMeta,
+  UserData,
   UserModel,
   UserNationalId,
   UserProfile,
@@ -234,10 +234,10 @@ export class UserProvider {
     return user.profile ?? {}
   }
 
-  async updateMeta(userId: ObjectId, partial: Partial<UserMeta>) {
+  async updateData(userId: ObjectId, partial: Partial<UserData>) {
     const $set = ensureValues(
       chain(partial)
-        .mapKeys((_, key) => `meta.${key}`)
+        .mapKeys((_, key) => `data.${key}`)
         .value(),
     )
 
@@ -251,9 +251,9 @@ export class UserProvider {
       throw new NotFound('user is not found')
     }
 
-    await this.configs.hooks?.onUserMetaUpdated?.(user)
+    await this.configs.hooks?.onUserDataUpdated?.(user)
 
-    return user.meta ?? {}
+    return user.data ?? {}
   }
 
   async updateNationalId(userId: ObjectId, partial: Partial<UserNationalId>) {

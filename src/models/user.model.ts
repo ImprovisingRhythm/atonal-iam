@@ -7,8 +7,8 @@ export interface UserNationalId {
   verified?: boolean
 }
 
-export interface UserProfile extends Record<string, any> {}
-export interface UserMeta extends Record<string, any> {}
+export interface UserProfile {}
+export interface UserData {}
 
 export interface User extends BaseModel, Timestamps {
   permissions?: string[]
@@ -23,8 +23,8 @@ export interface User extends BaseModel, Timestamps {
   secret?: string
   blocked?: boolean
   profile?: UserProfile
+  data?: UserData
   nationalId?: UserNationalId
-  meta?: UserMeta
 }
 
 export const UserModel = useCollection<User>({

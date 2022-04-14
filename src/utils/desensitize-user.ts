@@ -13,7 +13,7 @@ export const desensitizeUser = (user: User, mode: DesensitizeMode = 'mask') => {
     delete user.nationalId
     delete user.email
     delete user.phoneNumber
-    delete user.meta
+    delete user.data
 
     return user
   }

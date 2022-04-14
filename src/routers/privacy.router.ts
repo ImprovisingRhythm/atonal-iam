@@ -14,14 +14,14 @@ router.post('/delete-user', {
   ],
   schema: {
     body: Type.Object({
-      code: Type.String(),
+      ticket: Type.String(),
     }),
   },
   handler: async req => {
     const { user } = req.state
-    const { code } = req.body
+    const { ticket } = req.body
 
-    return privacyProvider.instance.deleteUser(user._id, code)
+    return privacyProvider.instance.deleteUser(user._id, ticket)
   },
 })
 

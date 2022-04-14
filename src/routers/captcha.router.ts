@@ -143,7 +143,7 @@ router.post('/verify/2fa', {
   },
 })
 
-router.post('/verify/token', {
+router.post('/verify/ticket', {
   middlewares: [
     useAuthGuards({
       guards: [keyGuard],
@@ -151,14 +151,14 @@ router.post('/verify/token', {
   ],
   schema: {
     body: Type.Object({
-      token: Type.String(),
+      ticket: Type.String(),
       identifier: Type.String(),
     }),
   },
   handler: async req => {
-    const { token, identifier } = req.body
+    const { ticket, identifier } = req.body
 
-    return captchaProvider.instance.verifyToken(token, identifier)
+    return captchaProvider.instance.verifyTicket(ticket, identifier)
   },
 })
 

@@ -1,6 +1,6 @@
 {
   "name": "atonal-iam",
-  "version": "2.3.3",
+  "version": "4.0.0",
   "description": "The RBAC-based IAM implementation based on Atonal Framework",
   "main": "dist/index.js",
   "author": "Improvising Rhythm Ltd.",
@@ -9,21 +9,20 @@
     "build": "rimraf dist && tsc"
   },
   "peerDependencies": {
-    "atonal": "^1.0.41",
-    "atonal-db": "^1.0.30"
+    "atonal": "^1.1.0",
+    "atonal-db": "^1.2.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.177",
     "@types/node": "^16.9.6",
-    "atonal": "^1.0.41",
-    "atonal-db": "^1.0.34",
+    "atonal": "^1.1.0",
+    "atonal-db": "^1.2.1",
     "rimraf": "^3.0.2",
     "typescript": "^4.5.3"
   },
   "dependencies": {
-    "assert": "^2.0.0",
     "libphonenumber-js": "^1.9.44",
     "lodash": "^4.17.21",
-    "otpauth": "^7.0.9"
+    "otpauth": "^7.1.1"
   }
 }

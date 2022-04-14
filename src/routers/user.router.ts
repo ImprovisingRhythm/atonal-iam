@@ -3,14 +3,13 @@ import { ObjectId } from 'atonal-db'
 import { useConfigs } from '../common/configs'
 import { IAM_PERMISSION } from '../common/constants'
 import { keyGuard, userGuard } from '../middlewares'
-import { useRelationProvider, useUserProvider } from '../providers'
+import { useUserProvider } from '../providers'
 
 const configs = useConfigs()
-const relationProvider = useRelationProvider()
 const userProvider = useUserProvider()
 
 const DefaultUserProfileSchema = Type.Object({})
-const DefaultUserMetaSchema = Type.Object({})
+const DefaultUserDataSchema = Type.Object({})
 
 const router = useRouter({
   middlewares: [
@@ -158,13 +157,13 @@ router.put('/:userId/profile', {
   },
 })
 
-router.patch('/:userId/meta', {
+router.patch('/:userId/data', {
   schema: () => ({
     params: Type.Object({
       userId: Type.String({ format: 'object-id' }),
     }),
     body: Type.Partial(
-      configs.instance.schemas?.user?.meta ?? DefaultUserMetaSchema,
+      configs.instance.schemas?.user?.data ?? DefaultUserDataSchema,
     ),
   }),
   handler: async req => {
@@ -174,7 +173,7 @@ router.patch('/:userId/meta', {
       userId: ObjectId.createFromHexString,
     })
 
-    return userProvider.instance.updateMeta(userId, req.body)
+    return userProvider.instance.updateData(userId, req.body)
   },
 })
 
@@ -277,24 +276,6 @@ router.post('/:userId/unblock', {
     })
 
     return userProvider.instance.unblockUser(userId)
-  },
-})
-
-router.get('/:userId/relation', {
-  schema: {
-    params: Type.Object({
-      userId: Type.String({ format: 'object-id' }),
-    }),
-  },
-  handler: async req => {
-    req.guardPermission(IAM_PERMISSION.GET_USERS)
-
-    const { user } = req.state
-    const { userId } = transform(req.params, {
-      userId: ObjectId.createFromHexString,
-    })
-
-    return relationProvider.instance.ensureRelation(user._id, userId)
   },
 })
 

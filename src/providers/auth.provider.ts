@@ -51,10 +51,10 @@ export class AuthProvider {
 
   async signUpWithPhoneNumber(
     phoneNumber: string,
-    token: string,
+    ticket: string,
     password?: string,
   ) {
-    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
+    await captchaProvider.instance.verifyTicket(ticket, `sms:${phoneNumber}`)
 
     return userProvider.instance.createUser({
       phoneNumber,
@@ -71,8 +71,8 @@ export class AuthProvider {
     return userProvider.instance.createUser({ email, password })
   }
 
-  async signInWithPhoneNumberAndToken(phoneNumber: string, token: string) {
-    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
+  async signInWithPhoneNumberAndToken(phoneNumber: string, ticket: string) {
+    await captchaProvider.instance.verifyTicket(ticket, `sms:${phoneNumber}`)
 
     const user = await userProvider.instance.getRawUserBy({ phoneNumber })
 
@@ -136,8 +136,8 @@ export class AuthProvider {
     return { success: true }
   }
 
-  async bindPhoneNumber(userId: ObjectId, phoneNumber: string, token: string) {
-    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
+  async bindPhoneNumber(userId: ObjectId, phoneNumber: string, ticket: string) {
+    await captchaProvider.instance.verifyTicket(ticket, `sms:${phoneNumber}`)
 
     const user = await userProvider.instance.updateUser(userId, {
       phoneNumber,
@@ -149,8 +149,8 @@ export class AuthProvider {
     return { success: true }
   }
 
-  async bindEmail(userId: ObjectId, email: string, token: string) {
-    await captchaProvider.instance.verifyToken(token, `email:${email}`)
+  async bindEmail(userId: ObjectId, email: string, ticket: string) {
+    await captchaProvider.instance.verifyTicket(ticket, `email:${email}`)
 
     const user = await userProvider.instance.updateUser(userId, {
       email,
@@ -182,8 +182,8 @@ export class AuthProvider {
     return { success: true }
   }
 
-  async resetPasswordByEmail(email: string, password: string, token: string) {
-    await captchaProvider.instance.verifyToken(token, `email:${email}`)
+  async resetPasswordByEmail(email: string, password: string, ticket: string) {
+    await captchaProvider.instance.verifyTicket(ticket, `email:${email}`)
 
     const user = await userProvider.instance.getRawUserBy({ email })
 
@@ -201,9 +201,9 @@ export class AuthProvider {
   async resetPasswordByPhoneNumber(
     phoneNumber: string,
     password: string,
-    token: string,
+    ticket: string,
   ) {
-    await captchaProvider.instance.verifyToken(token, `sms:${phoneNumber}`)
+    await captchaProvider.instance.verifyTicket(ticket, `sms:${phoneNumber}`)
 
     const user = await userProvider.instance.getRawUserBy({ phoneNumber })
 

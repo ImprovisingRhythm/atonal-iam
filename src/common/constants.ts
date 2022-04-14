@@ -6,7 +6,6 @@ export const IAM_PERMISSION = {
   GET_USERS: 'IAM.GetUsers',
   UPDATE_USERS: 'IAM.UpdateUsers',
   BLOCK_USERS: 'IAM.BlockUsers',
-  MANAGE_RELATIONS: 'IAM.ManageRelations',
   MANAGE_PERMISSIONS: 'IAM.ManagePermissions',
   SENSITIVE_ACCESS: 'IAM.SensitiveAccess',
 } as const
@@ -34,10 +33,6 @@ export const IAM_BUILT_IN_PERMISSIONS: PermissionDef[] = [
     description: 'Allow to block and unblock users',
   },
   {
-    name: IAM_PERMISSION.MANAGE_RELATIONS,
-    description: 'Allow to manage user relations',
-  },
-  {
     name: IAM_PERMISSION.MANAGE_PERMISSIONS,
     description: 'Allow to get and set permissions',
   },
@@ -61,7 +56,6 @@ export const IAM_BUILT_IN_ROLES: RoleDef[] = [
       IAM_PERMISSION.GET_USERS,
       IAM_PERMISSION.UPDATE_USERS,
       IAM_PERMISSION.BLOCK_USERS,
-      IAM_PERMISSION.MANAGE_RELATIONS,
     ],
   },
 ]

@@ -4,7 +4,6 @@ import captchaRouter from './captcha.router'
 import otpRouter from './otp.router'
 import privacyRouter from './privacy.router'
 import rbacRouter from './rbac.router'
-import relationRouter from './relation.router'
 import sessionRouter from './session.router'
 import userRouter from './user.router'
 
@@ -15,7 +14,6 @@ router.use('/captcha', captchaRouter)
 router.use('/otp', otpRouter)
 router.use('/privacy', privacyRouter)
 router.use('/rbac', rbacRouter)
-router.use('/relations', relationRouter)
 router.use('/session', sessionRouter)
 router.use('/users', userRouter)
 
