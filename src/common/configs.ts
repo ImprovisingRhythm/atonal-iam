@@ -71,7 +71,6 @@ export interface IAMConfigs {
     onUserLocationUpdated?: (user: User) => Promise<void> | void
     onUserBlocked?: (user: User) => Promise<void> | void
     onUserUnblocked?: (user: User) => Promise<void> | void
-    onUserDeleted?: (user: User) => Promise<void> | void
     onGetSession?: (state: UserState) => Promise<void> | void
     onSignIn?: (state: UserState) => Promise<void> | void
     onSignOut?: (state: UserState) => Promise<void> | void

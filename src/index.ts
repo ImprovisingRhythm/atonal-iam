@@ -7,7 +7,6 @@ import {
   AuthProvider,
   CaptchaProvider,
   OTPProvider,
-  PrivacyProvider,
   RBACProvider,
   SessionProvider,
   UserProvider,
@@ -35,7 +34,6 @@ export const useIAM = (configs: IAMConfigs) => {
       useInstance('IAM.provider.auth', new AuthProvider(configs))
       useInstance('IAM.provider.captcha', new CaptchaProvider(configs))
       useInstance('IAM.provider.otp', new OTPProvider(configs))
-      useInstance('IAM.provider.privacy', new PrivacyProvider(configs))
       useInstance('IAM.provider.rbac', new RBACProvider(configs))
       useInstance('IAM.provider.session', new SessionProvider(configs))
       useInstance('IAM.provider.user', new UserProvider(configs))
